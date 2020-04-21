@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>Java虚拟机中的垃圾回收算法与垃圾收集器 | qiaofeng-fangxianhao技术博客 | 路漫漫其修远兮，吾将上下而求索！</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="JVM,垃圾回收,java的4种引用">
+    <meta name="description" content="什么是垃圾回收在程序的运行过程中，我们所创建的对象都会申请内存资源，当这个对象没有用处的时候，我们就需要将它的内存资源释放，否则造成内存资源的浪费，所以我们需要对内存资源进行管理。 在C/C++语言中，没有自动的垃圾回收机制，通过手动申请内存资源及手动释放内存资源来达到内存资源的控制，如果没有手动释放资源，则申请的对象占用的内存资源会一直占用，最终可能会导致内存溢出。 为了使得我们可以更专注与代码">
+<meta name="keywords" content="JVM,垃圾回收,java的4种引用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java虚拟机中的垃圾回收算法与垃圾收集器">
+<meta property="og:url" content="http://qiaofengfangxh.top/2019/08/01/Java虚拟机中的垃圾回收算法与垃圾收集器/index.html">
+<meta property="og:site_name" content="qiaofeng-fangxianhao技术博客">
+<meta property="og:description" content="什么是垃圾回收在程序的运行过程中，我们所创建的对象都会申请内存资源，当这个对象没有用处的时候，我们就需要将它的内存资源释放，否则造成内存资源的浪费，所以我们需要对内存资源进行管理。 在C/C++语言中，没有自动的垃圾回收机制，通过手动申请内存资源及手动释放内存资源来达到内存资源的控制，如果没有手动释放资源，则申请的对象占用的内存资源会一直占用，最终可能会导致内存溢出。 为了使得我们可以更专注与代码">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://qiaofengfangxh.top/img/jvm-1.png">
+<meta property="og:image" content="http://qiaofengfangxh.top/img/jvm-2.png">
+<meta property="og:image" content="http://qiaofengfangxh.top/img/jvm-3.png">
+<meta property="og:image" content="http://qiaofengfangxh.top/img/jvm-4.png">
+<meta property="og:image" content="http://qiaofengfangxh.top/img/jvm-5.png">
+<meta property="og:image" content="http://qiaofengfangxh.top/img/jvm-6.png">
+<meta property="og:image" content="http://qiaofengfangxh.top/img/jvm-7.jpg">
+<meta property="og:image" content="http://qiaofengfangxh.top/img/jvm-8.png">
+<meta property="og:image" content="http://qiaofengfangxh.top/img/jvm-9.png">
+<meta property="og:image" content="http://qiaofengfangxh.top/img/jvm-10.png">
+<meta property="og:image" content="http://qiaofengfangxh.top/img/jvm-11.png">
+<meta property="og:updated_time" content="2019-08-07T01:57:36.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java虚拟机中的垃圾回收算法与垃圾收集器">
+<meta name="twitter:description" content="什么是垃圾回收在程序的运行过程中，我们所创建的对象都会申请内存资源，当这个对象没有用处的时候，我们就需要将它的内存资源释放，否则造成内存资源的浪费，所以我们需要对内存资源进行管理。 在C/C++语言中，没有自动的垃圾回收机制，通过手动申请内存资源及手动释放内存资源来达到内存资源的控制，如果没有手动释放资源，则申请的对象占用的内存资源会一直占用，最终可能会导致内存溢出。 为了使得我们可以更专注与代码">
+<meta name="twitter:image" content="http://qiaofengfangxh.top/img/jvm-1.png">
+    
+        <link rel="alternate" type="application/atom+xml" title="qiaofeng-fangxianhao技术博客" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/avatar.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">qiaofeng-fangxianhao</h5>
+          <a href="mailto:fxh_new_think@sina.com" title="fxh_new_think@sina.com" class="mail">fxh_new_think@sina.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/qiaofengfangxh/qiaofengfangxh.github.io" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://weibo.com/" target="_blank" >
+                <i class="icon icon-lg icon-weibo"></i>
+                Weibo
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Java虚拟机中的垃圾回收算法与垃圾收集器</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="検索">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Java虚拟机中的垃圾回收算法与垃圾收集器</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-08-01T07:30:16.000Z" itemprop="datePublished" class="page-time">
+  2019-08-01
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/java/">java</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#什么是垃圾回收"><span class="post-toc-number">1.</span> <span class="post-toc-text">什么是垃圾回收</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#什么对象是垃圾"><span class="post-toc-number">2.</span> <span class="post-toc-text">什么对象是垃圾</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#引用计数法"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">引用计数法</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#可达性分析法"><span class="post-toc-number">2.2.</span> <span class="post-toc-text">可达性分析法</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#java中的四种引用"><span class="post-toc-number">3.</span> <span class="post-toc-text">java中的四种引用</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#强引用-StrongReference"><span class="post-toc-number">3.1.</span> <span class="post-toc-text">强引用 (StrongReference)</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#软引用-SoftReference"><span class="post-toc-number">3.2.</span> <span class="post-toc-text">软引用 (SoftReference)</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#弱引用-WeakReference）"><span class="post-toc-number">3.3.</span> <span class="post-toc-text">弱引用 (WeakReference）</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#虚引用（PhantomReference）"><span class="post-toc-number">3.4.</span> <span class="post-toc-text">虚引用（PhantomReference）</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#总结"><span class="post-toc-number">3.5.</span> <span class="post-toc-text">总结</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#对象复生finalize方法"><span class="post-toc-number">4.</span> <span class="post-toc-text">对象复生finalize方法</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#垃圾收集算法"><span class="post-toc-number">5.</span> <span class="post-toc-text">垃圾收集算法</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#标记清除法"><span class="post-toc-number">5.1.</span> <span class="post-toc-text">标记清除法</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#复制算法"><span class="post-toc-number">5.2.</span> <span class="post-toc-text">复制算法</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#标记压缩法"><span class="post-toc-number">5.3.</span> <span class="post-toc-text">标记压缩法</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#垃圾收集器"><span class="post-toc-number">6.</span> <span class="post-toc-text">垃圾收集器</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#串行收集器"><span class="post-toc-number">6.1.</span> <span class="post-toc-text">串行收集器</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#并行收集器"><span class="post-toc-number">6.2.</span> <span class="post-toc-text">并行收集器</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Parallel收集器"><span class="post-toc-number">6.3.</span> <span class="post-toc-text">Parallel收集器</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#CMS收集器"><span class="post-toc-number">6.4.</span> <span class="post-toc-text">CMS收集器</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#G1收集器"><span class="post-toc-number">6.5.</span> <span class="post-toc-text">G1收集器</span></a></li></ol></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-Java虚拟机中的垃圾回收算法与垃圾收集器"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">Java虚拟机中的垃圾回收算法与垃圾收集器</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-08-01 15:30:16" datetime="2019-08-01T07:30:16.000Z"  itemprop="datePublished">2019-08-01</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/java/">java</a></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <h1 id="什么是垃圾回收"><a href="#什么是垃圾回收" class="headerlink" title="什么是垃圾回收"></a>什么是垃圾回收</h1><p>在程序的运行过程中，我们所创建的对象都会申请内存资源，当这个对象没有用处的时候，我们就需要将它的内存资源释放，否则造成内存资源的浪费，所以我们需要对内存资源进行管理。</p>
+<p>在C/C++语言中，没有自动的垃圾回收机制，通过手动申请内存资源及手动释放内存资源来达到内存资源的控制，如果没有手动释放资源，则申请的对象占用的内存资源会一直占用，最终可能会导致内存溢出。</p>
+<p>为了使得我们可以更专注与代码的实现而不用过多的考虑内存资源释放的问题，就需要一个垃圾回收机制来帮助我们在合速的时间，进行对垃圾对象的内存资源回收，将垃圾对象的内存资源释放。</p>
+<h1 id="什么对象是垃圾"><a href="#什么对象是垃圾" class="headerlink" title="什么对象是垃圾"></a>什么对象是垃圾</h1><p>我们创建的对象实例都是放在Java堆中的，所以垃圾收集器的大部分时间也是在堆中的，垃圾收集器会判断堆中的哪些对象还在使用，哪些对象是垃圾，可以被回收。</p>
+<p>方法区中也可以进行垃圾收集，回收废弃常量及无用的类，但是方法区中的垃圾收集性价比太低，所以在Java虚拟机规范中也不要求虚拟机在方法区实现垃圾收集。</p>
+<h2 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h2><p>引用计数法是一个很经典的垃圾收集算法，它的实现很简单，就是给对象添加一个引用的计数器，有其他地方引用它时，计数器的值就增加1，当引用失效时，这个引用就减1。当对象的引用计数器为0时，这个对象就是不可能再被使用的状态。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/img/jvm-1.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+<p>如上图，对象A不再引用对象B后，对象B的引用计数器就会减1且到达0值，这时对象B不会再被其他任何对象使用到了，所以对象B需要被回收。</p>
+<p>引用计数法的判断效率很高，在大部分情况下效果其实都不错，但是它确有个大问题，也就是引用计数法无法解决对象之间相互循环引用的问题。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/img/jvm-2.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+<p>如上图，实际上对象B和对象C已经不会再被使用到了，但是对象B和对象C的引用计数器都不为0。</p>
+<h2 id="可达性分析法"><a href="#可达性分析法" class="headerlink" title="可达性分析法"></a>可达性分析法</h2><p>在Java虚拟机的主流实现中，一般都是通过可达性分析来判断对象是否为垃圾。可达性分析法的基本思路为通过一系列被称为GC Roots的对象为起始点，从这些节点向下搜索，搜索到的路径称为引用链，如果一个对象到GC Roots没有任何引用链时，则说明这个对象是不可用的对象，可以被回收。</p>
+<p>如下图，对象D、对象E、对象F虽然有引用关系，但是他们到GC Roots没有任何引用链，是不可达的对象，所以它们会被判断为可回收的对象。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/img/jvm-3.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+<p>在Java中，可作为GC Roots的对象包括下面几种：</p>
+<ul>
+<li><code>Java栈和本地方法栈中引用的对象</code></li>
+<li><code>方法区中类静态属性和常量引用的对象</code></li>
+</ul>
+<h1 id="java中的四种引用"><a href="#java中的四种引用" class="headerlink" title="java中的四种引用"></a>java中的四种引用</h1><p>在判断对象是否是垃圾时，无论是引用计数法和可达性分析法，都是与引用有关。如果一个对象只有被引用和没有被引用两种状态，那么我们对于对象的引用操作空间就很小，例如我们希望在内存空间充足的时候保存一些对象，但是在内存资源比较紧缺的时候可以抛弃这些对象，这样的应用场景可以用在缓存上。</p>
+<p>在JDK 1.2之后，Java对引用的概念进行了扩充，将引用分为了强引用、软引用、弱引用、虚引用4种引用。</p>
+<h2 id="强引用-StrongReference"><a href="#强引用-StrongReference" class="headerlink" title="强引用 (StrongReference)"></a>强引用 (StrongReference)</h2><p>强引用是指在程序代码中普遍存在的，类似<code>Object obj=new Object()</code>这类的引用，只要强引用还存在，垃圾收集器永远不会回收掉被引用的对象。<br>只要某个对象有强引用与之关联，JVM必定不会回收这个对象，即使在内存不足的情况下，JVM宁愿抛出OutOfMemory错误也不会回收这种对象。</p>
+<h2 id="软引用-SoftReference"><a href="#软引用-SoftReference" class="headerlink" title="软引用 (SoftReference)"></a>软引用 (SoftReference)</h2><p>软引用是用来描述一些有用但并不是必需的对象。对于软引用关联着的对象，只有在内存不足的时候JVM才会回收该对象。因此，这一点可以很好地用来解决OOM的问题，并且这个特性很适合用来实现缓存：比如网页缓存、图片缓存等。JDK 1.2之后，提供了SoftReference类来实现软引用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.ref.SoftReference;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">         <span class="comment">//创建一个软引用的对象</span></span><br><span class="line">        SoftReference&lt;String&gt; sr = <span class="keyword">new</span> SoftReference&lt;String&gt;(<span class="keyword">new</span> String(<span class="string">"hello"</span>));</span><br><span class="line">        System.out.println(sr.get());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="弱引用-WeakReference）"><a href="#弱引用-WeakReference）" class="headerlink" title="弱引用 (WeakReference）"></a>弱引用 (WeakReference）</h2><p>弱引用也是用来描述非必需对象的，当JVM进行垃圾回收时，无论内存是否充足，都会回收被弱引用关联的对象</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.ref.WeakReference;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        WeakReference&lt;String&gt; sr = <span class="keyword">new</span> WeakReference&lt;String&gt;(<span class="keyword">new</span> String(<span class="string">"hello"</span>));</span><br><span class="line">        System.out.println(sr.get());</span><br><span class="line">        <span class="comment">//通知JVM的gc进行垃圾回收</span></span><br><span class="line">        System.gc();                </span><br><span class="line">        System.out.println(sr.get());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果: </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hello</span><br><span class="line"><span class="keyword">null</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="虚引用（PhantomReference）"><a href="#虚引用（PhantomReference）" class="headerlink" title="虚引用（PhantomReference）"></a>虚引用（PhantomReference）</h2><p>一个对象是否有虚引用的存在，完全不会对其生存时间构成影响，也无法通过虚引用来获取一个对象的实例。为一个对象设置虚引用关联的唯一目的就是能在这个对象被收集器回收时收到一个系统通知。并且，虚引用必须和引用队列一起使用，它的作用在于跟踪垃圾回收过程。 当垃圾回收器准备回收一个对象时，如果发现它还有虚引用，就会在垃圾回收后，销毁这个对象。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.ref.PhantomReference;</span><br><span class="line"><span class="keyword">import</span> java.lang.ref.ReferenceQueue;</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ReferenceQueue&lt;String&gt; queue = <span class="keyword">new</span> ReferenceQueue&lt;String&gt;();</span><br><span class="line">        PhantomReference&lt;String&gt; pr = <span class="keyword">new</span> PhantomReference&lt;String&gt;(<span class="keyword">new</span> String(<span class="string">"hello"</span>), queue);</span><br><span class="line">        System.out.println(pr.get());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><table>
+<thead>
+<tr>
+<th align="center">对比</th>
+<th align="center">强引用</th>
+<th align="center">软引用</th>
+<th align="center">弱引用</th>
+<th align="center">虚引用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">引用强度</td>
+<td align="center">最强</td>
+<td align="center">第二</td>
+<td align="center">第三</td>
+<td align="center">第四</td>
+</tr>
+<tr>
+<td align="center">如何使用</td>
+<td align="center">new Object()</td>
+<td align="center">SoftReference</td>
+<td align="center">WeakReference</td>
+<td align="center">PhantomReference</td>
+</tr>
+</tbody></table>
+<h1 id="对象复生finalize方法"><a href="#对象复生finalize方法" class="headerlink" title="对象复生finalize方法"></a>对象复生finalize方法</h1><p>如果对象实现了<code>finalize()</code>方法，且该方法还未被虚拟机调用过，那么这个对象在回收前会被加入<code>F-Queue</code>的队列中，在稍后由一个虚拟机建立的低优先级的Finalizer线程去执行。但虚拟机虽然会触发这个方法，但并不保证这个方法的执行结束，防止这个方法的执行过程太慢或者发生死循环等情况导致队列中的其他对象处于等待。</p>
+<p>对象的<code>finalize()</code>方法只能被调用一次，如果在下一次被回收时对象的<code>finalize()</code>方法已经被调用过了，那么该方法不会再次执行，而且这个方法也是不建议使用的方法，我们往往有更好的方案来替代它。</p>
+<h1 id="垃圾收集算法"><a href="#垃圾收集算法" class="headerlink" title="垃圾收集算法"></a>垃圾收集算法</h1><p>各个平台的虚拟机操作内存的方法细节可能会有不同，但是垃圾收集的算法思路都是类似的。</p>
+<h2 id="标记清除法"><a href="#标记清除法" class="headerlink" title="标记清除法"></a>标记清除法</h2><p>标记清除法是垃圾回收算法中的思想基础，标记清除法将垃圾回收分为标记和清除两个阶段。首先标记出从根节点开始可达的对象，未标记的对象就是可回收的对象，然后将这些对象进行回收。</p>
+<p>但是标记清除法的最大问题就是会产生大量不连续的空间碎片，如下图所示，回收后的空间是不连续的：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/img/jvm-4.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+<h2 id="复制算法"><a href="#复制算法" class="headerlink" title="复制算法"></a>复制算法</h2><p>复制算法算法将原有的内存空间分为两块，每次只使用其中的一块，在垃圾回收时，将还存活着的对象复制到另外一块上面，然后将这一块内存空间的所有对象清除。</p>
+<p>如果垃圾对象很多，需要复制的存活对象数量就会相对较少，因此复制算法的效率还是很高的，并且将对象复制到新的内存空间中也保证了不会有空间碎片的存在；但是复制算法的代价是将内存折半。</p>
+<p>如下图，将内存空间分为A、B两块，在A进行垃圾回收时，将A空间中的存活对象复制到B中，并将A空间清空：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/img/jvm-5.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+<p>在大多数时候采用复制算法来回收年轻代中的垃圾对象，而且因为大部分的对象死亡周期非常短暂，所以可以不用直接将内存折半，而是将内存使用8:1:1的比例分为了一个较大的Eden空间及2块Survivor空间。</p>
+<p>当进行垃圾回收时，将Eden空间和Survivor空间中存活的对象复制到另一块Survivor空间上，然后清除Eden空间和刚刚使用的Survivor空间。每次使用的内存比例达到了百分之九十，只有百分之十的Survivor空间作为被复制的内存空间，每次复制后，两个Survivor空间的角色互换。</p>
+<p>当Survivor空间的内存不够将对象复制进来时，需要老年代进行分配担保。也就是另外Survivor空间没有足够的内存存放收集到的存活对象时，这些对象直接会进入老年代。</p>
+<h2 id="标记压缩法"><a href="#标记压缩法" class="headerlink" title="标记压缩法"></a>标记压缩法</h2><p>复制算法如果在对象的存活率较高时，效率就会变低，在老年代中，大部分对象都是存活对象，所以复制算法的成本就会提高，所以基于老年代对象的特性，就需要使用其他算法。</p>
+<p>基于老年代对象的特性，标记压缩法是在标记清除法的基础上优化得来的一直垃圾回收算法。和标记清除的过程一样，首先标记存活的对象，但之后并不是简单的清理未标记的对象，而是将存活的对象压缩到内存的一端。之后清理边界外的所有空间。</p>
+<p>这种方法避免了空间碎片的产生，也不需要两块内存空间，因此性价比较高，标记压缩法的过程如下图所示：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/img/jvm-6.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+
+<h1 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h1><p>在Java虚拟机中，在什么情况下要使用什么类型的垃圾收集器以及这些垃圾收集器会造成什么样的影响，这是是我们需要了解的，只有了解了这些垃圾收集器的特点和使用方法，我们才能在具体的应用中使用合适的垃圾收集器。</p>
+<h2 id="串行收集器"><a href="#串行收集器" class="headerlink" title="串行收集器"></a>串行收集器</h2><p>串行收集器是使用单线程进行垃圾回收的垃圾收集器，并且在进行垃圾回收时，必须暂停其他所有的工作线程，知道串行收集器的垃圾回收结束。</p>
+<p>串行收集器可以在年轻代及老年代的内存空间中进行垃圾回收，<br>如下图所示，串行收集器在工作时，应用程序中的所有线程都需要停止工作，这种现象被称为<code>Stop The World</code>。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/img/jvm-7.jpg" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+<p>年轻代的串行收集器采用复制算法进行回收，老年代的串行收集器采用标记压缩法进行回收，串行收集器的实现相对简单且不用进行线程切换。在单CPU的硬件下性能还不错。</p>
+<h2 id="并行收集器"><a href="#并行收集器" class="headerlink" title="并行收集器"></a>并行收集器</h2><p>并行收集器是串行收集器的多线程版本，并行收集器使用多个线程同时进行垃圾回收，对于并行能力较强的硬件情况下可以提高性能。</p>
+<p>并行收集器同样可以在年轻代及老年代的内存空间中进行垃圾回收，回收策略与使用的算法都与串行收集器一样。</p>
+<p>并行收集器工作过程如下图所示：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/img/jvm-8.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+<p>并行收集器由于存在线程交互的开销，在单CPU的环境中，串行收集器的效果会更好。但是随着CPU数量的增加，并行收集器的效率也会随之提升。</p>
+<h2 id="Parallel收集器"><a href="#Parallel收集器" class="headerlink" title="Parallel收集器"></a>Parallel收集器</h2><p>Parallel收集器也可以在年轻代及老年代的内存空间中进行垃圾回收，回收策略与使用的算法都与并行收集器一样，且也是多线程的垃圾收集器。</p>
+<p>Parallel收集器的特点是它的关注点与其他收集器不同，Parallel收集器的目标则是达到一个可控制的吞吐量。</p>
+<p>停顿时间越短就越适合需要与用户交互的程序，良好的响应速度能提升用户体验，而高吞吐量则可以高效率地利用CPU时间，尽快完成程序的运算任务，主要适合在后台运算而不需要太多交互的任务。</p>
+<p>可以在JVM参数中配置Parallel收集器相关的参数进行控制。</p>
+<h2 id="CMS收集器"><a href="#CMS收集器" class="headerlink" title="CMS收集器"></a>CMS收集器</h2><p>CMS收集器是一种以获取最短回收停顿时间为目标的收集器，且在可以在应用程序运行过程中进行垃圾回收。</p>
+<p>CMS收集器是基于标记清除法实现的，它的运作步骤如下：</p>
+<ul>
+<li>初始标记，标记根对象</li>
+<li>并发标记，标记回收对象</li>
+<li>预处理，清理垃圾对象前的装备及控制停顿时间，也可以关闭预处理步骤</li>
+<li>重新标记，修改并发标记中的对象</li>
+<li>并发清除，清除垃圾<br>其中，初始标记、重新标记这两个步骤仍然需要<code>Stop The World</code>。</li>
+</ul>
+<p>初始标记仅仅只是标记一下<code>GC Roots</code>能直接关联到的对象，速度很快，而重新标记阶段则是为了修正并发标记期间因用户程序继续运作而导致标记产生变动的那一部分对象的标记记录。</p>
+<p>整个过程中耗时最长的并发标记和并发清除过程收集器线程都可以与用户线程一起工作的，下图比较清楚地展示了CMS收集器的运作步骤中并发和需要停顿的时间：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/img/jvm-9.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+<p>CMS是一款优秀的收集器，它的主要优点就是并发收集及低停顿。但是CMS对CPU资源的要求较高且会出现大量的空间碎片。</p>
+<h2 id="G1收集器"><a href="#G1收集器" class="headerlink" title="G1收集器"></a>G1收集器</h2><p>G1收集器对内存进行了分区，虽然也会区分年轻代和老年代，但是G1对内存中的对象进行分区的回收，同时，G1收集器的特点如下：</p>
+<ul>
+<li>并行与并发：G1能充分利用多CPU、多核环境下的硬件优势，使用多个CPU来缩短<code>Stop-The-World</code>停顿的时间，并且G1收集器的部分工作可以和应用程序同时运行。</li>
+<li>分代收集：G1收集器能够同时管理年轻代和老年代，其他收集器都需要根据算法的不同为年轻代和老年代使用不同的垃圾收集器。</li>
+<li>空间整理：G1从整体来看是基于标记压缩法实现的收集器，从分区上来看是基于复制算法实现的，但无论如何，这两种算法都意味着G1运作期间不会产生内存空间碎片，收集后能提供规整的可用内存。这种特性有利于程序长时间运行。</li>
+<li>可预测性：G1可以只选择部分分区进行垃圾回收，达到对全局停顿的控制。<br>在G1之前的其他收集器进行收集的范围都是整个新生代或者老年代。而G1收集器的Java堆的内存布局就与其他收集器有很大差别，它将整个Java堆划分为多个大小相等的独立分区（Region）。</li>
+</ul>
+<p>G1收集器的内存模型如下：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/img/jvm-10.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+<p>在G1收集器中，使用记忆集合(Remembered Set，简称RSet)来避免全堆扫描。每个分区都有一个RSet，程序在对引用对象类型的数据进行写操作时，会产生一个Write Barrier(屏障)暂时中断写操作，检查这个引用的对象是否处于不同的分区之中；如果是，便把相关引用信息记录到被引用对象所属的分区的RSet之中。进行内存回收时，在GC根节点的枚举范围中加入RSet即可保证不对全堆扫描也不会有遗漏。</p>
+<p>每个分区会被分为多个Card，所以在RSet中会记录对应分区中的Card，如下图所示：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/img/jvm-11.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+<p>G1收集器的运作大致可划分为以下几个步骤：</p>
+<ul>
+<li>初始标记，标记根对象</li>
+<li>并发标记，标记回收对象</li>
+<li>重新标记，修改并发标记中的对象</li>
+<li>分区清理</li>
+</ul>
+<p>其中，初始标记、重新标记这两个步骤和CMS收集器一样仍然需要Stop The World,在重新标记阶段会重新更新对象的记忆集合(Remembered Set)，最后在分区清理阶段首先对各个分区的回收价值和成本进行排序，根据用户所期望的GC停顿时间来制定回收计划，根据区域的优先级进行回收。</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最終更新：<time datetime="2019-08-07T01:57:36.000Z" itemprop="dateUpdated">2019-08-07 09:57:36</time>
+</span><br>
+
+
+        
+        感谢阅读，如有疑惑可以留下评论。文章地址：<a href="/2019/08/01/Java虚拟机中的垃圾回收算法与垃圾收集器/" target="_blank" rel="external">http://qiaofengfangxh.top/2019/08/01/Java虚拟机中的垃圾回收算法与垃圾收集器/</a>
+        
+    </div>
+    
+    <footer>
+        <a href="http://qiaofengfangxh.top">
+            <img src="/img/avatar.jpg" alt="qiaofeng-fangxianhao">
+            qiaofeng-fangxianhao
+        </a>
+    </footer>
+</blockquote>
+
+        
+<div class="page-reward">
+    <a id="rewardBtn" href="javascript:;" class="page-reward-btn waves-effect waves-circle waves-light">赏</a>
+</div>
+
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JVM/">JVM</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java的4种引用/">java的4种引用</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/垃圾回收/">垃圾回收</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2019/08/01/Java虚拟机中的垃圾回收算法与垃圾收集器/&title=《Java虚拟机中的垃圾回收算法与垃圾收集器》 — qiaofeng-fangxianhao技术博客&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2019/08/01/Java虚拟机中的垃圾回收算法与垃圾收集器/&title=《Java虚拟机中的垃圾回收算法与垃圾收集器》 — qiaofeng-fangxianhao技术博客&source=路漫漫其修远兮，吾将上下而求索！" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://qiaofengfangxh.top/2019/08/01/Java虚拟机中的垃圾回收算法与垃圾收集器/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Java虚拟机中的垃圾回收算法与垃圾收集器》 — qiaofeng-fangxianhao技术博客&url=http://qiaofengfangxh.top/2019/08/01/Java虚拟机中的垃圾回收算法与垃圾收集器/&via=http://qiaofengfangxh.top" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://qiaofengfangxh.top/2019/08/01/Java虚拟机中的垃圾回收算法与垃圾收集器/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2019/08/10/线程池ThreadPoolExecutor源码分析/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">线程池ThreadPoolExecutor源码学习和总结</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/07/28/Redis-持久化数据/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">Redis-持久化数据</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="comments" id="comments">
+    <div id="gitalk-container"></div>
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+        var id = location.pathname
+        if (location.pathname.length > 50) {
+          id = location.pathname.replace(/\/\d+\/\d+\/\d+\//, '').replace('/', '').substring(0, 50)
+        }
+        const gitalk = new Gitalk({
+          clientID: 'e70519153d81a4abe02e',
+          clientSecret: '191f4642e9522167bd01a66a4fa2b72ebd591b02',
+          repo: 'qiaofengfangxh.github.io',
+          owner: 'qiaofengfangxh',
+          admin: 'qiaofengfangxh',
+          id: id,  
+          title: document.title.split('|')[0],
+          distractionFreeMode: false  // Facebook-like distraction free mode
+        })
+
+        gitalk.render('gitalk-container')
+    </script>
+</section>
+
+
+
+</article>
+
+<div id="reward" class="page-modal reward-lay">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <h3 class="reward-title">
+        <i class="icon icon-quote-left"></i>
+        谢谢大爷~
+        <i class="icon icon-quote-right"></i>
+    </h3>
+    <div class="reward-content">
+        
+        <div class="reward-code">
+            <img id="rewardCode" src="/img/wechat.jpg" alt="打赏二维码">
+        </div>
+        
+        <label class="reward-toggle">
+            <input id="rewardToggle" type="checkbox" class="reward-toggle-check"
+                data-wechat="/img/wechat.jpg" data-alipay="/img/alipay.jpg">
+            <div class="reward-toggle-ctrol">
+                <span class="reward-toggle-item wechat">微信</span>
+                <span class="reward-toggle-label"></span>
+                <span class="reward-toggle-item alipay">支付宝</span>
+            </div>
+        </label>
+        
+    </div>
+</div>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>このブログの内容物は<a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ja">クリエイティブ・コモンズ 表示 - 非営利 - 継承 4.0 国際ライセンスの下に提供されています</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>qiaofeng-fangxianhao &copy; 2015 - 2020</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2019/08/01/Java虚拟机中的垃圾回收算法与垃圾收集器/&title=《Java虚拟机中的垃圾回收算法与垃圾收集器》 — qiaofeng-fangxianhao技术博客&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2019/08/01/Java虚拟机中的垃圾回收算法与垃圾收集器/&title=《Java虚拟机中的垃圾回收算法与垃圾收集器》 — qiaofeng-fangxianhao技术博客&source=路漫漫其修远兮，吾将上下而求索！" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://qiaofengfangxh.top/2019/08/01/Java虚拟机中的垃圾回收算法与垃圾收集器/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Java虚拟机中的垃圾回收算法与垃圾收集器》 — qiaofeng-fangxianhao技术博客&url=http://qiaofengfangxh.top/2019/08/01/Java虚拟机中的垃圾回收算法与垃圾收集器/&via=http://qiaofengfangxh.top" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://qiaofengfangxh.top/2019/08/01/Java虚拟机中的垃圾回收算法与垃圾收集器/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="//api.qrserver.com/v1/create-qr-code/?data=http://qiaofengfangxh.top/2019/08/01/Java虚拟机中的垃圾回收算法与垃圾收集器/" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: true };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+<script>
+(function() {
+    var OriginTitile = document.title, titleTime;
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            document.title = 'qiaofeng-fangxianhao技术博客';
+            clearTimeout(titleTime);
+        } else {
+            document.title = 'qiaofeng-fangxianhao技术博客';
+            titleTime = setTimeout(function() {
+                document.title = OriginTitile;
+            },2000);
+        }
+    });
+})();
+</script>
+
+
+
+</body>
+</html>

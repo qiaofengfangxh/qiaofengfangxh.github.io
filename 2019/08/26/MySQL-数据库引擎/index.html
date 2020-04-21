@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>MySQL-数据库引擎 | qiaofeng-fangxianhao技术博客 | 路漫漫其修远兮，吾将上下而求索！</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="mysql,数据库引擎,聚集索引和非聚集索引">
+    <meta name="description" content="数据库引擎是用于存储、处理和保护数据的核心服务。利用数据库引擎可控制访问权限并快速处理事务，从而满足企业内大多数需要处理大量数据的应用程序的要求。 使用数据库引擎创建用于联机事务处理或联机分析处理数据的关系数据库。这包括创建用于存储数据的表和用于查看、管理和保护数据安全的数据库对象（如索引、视图和存储过程）等。 MySQL数据库引擎类别MySql数据库引擎取决于mysql在安装的时候是如何被编译的">
+<meta name="keywords" content="mysql,数据库引擎,聚集索引和非聚集索引">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL-数据库引擎">
+<meta property="og:url" content="http://qiaofengfangxh.top/2019/08/26/MySQL-数据库引擎/index.html">
+<meta property="og:site_name" content="qiaofeng-fangxianhao技术博客">
+<meta property="og:description" content="数据库引擎是用于存储、处理和保护数据的核心服务。利用数据库引擎可控制访问权限并快速处理事务，从而满足企业内大多数需要处理大量数据的应用程序的要求。 使用数据库引擎创建用于联机事务处理或联机分析处理数据的关系数据库。这包括创建用于存储数据的表和用于查看、管理和保护数据安全的数据库对象（如索引、视图和存储过程）等。 MySQL数据库引擎类别MySql数据库引擎取决于mysql在安装的时候是如何被编译的">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://qiaofengfangxh.top/img/mysql/engine.png">
+<meta property="og:updated_time" content="2019-09-02T04:08:36.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MySQL-数据库引擎">
+<meta name="twitter:description" content="数据库引擎是用于存储、处理和保护数据的核心服务。利用数据库引擎可控制访问权限并快速处理事务，从而满足企业内大多数需要处理大量数据的应用程序的要求。 使用数据库引擎创建用于联机事务处理或联机分析处理数据的关系数据库。这包括创建用于存储数据的表和用于查看、管理和保护数据安全的数据库对象（如索引、视图和存储过程）等。 MySQL数据库引擎类别MySql数据库引擎取决于mysql在安装的时候是如何被编译的">
+<meta name="twitter:image" content="http://qiaofengfangxh.top/img/mysql/engine.png">
+    
+        <link rel="alternate" type="application/atom+xml" title="qiaofeng-fangxianhao技术博客" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/avatar.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">qiaofeng-fangxianhao</h5>
+          <a href="mailto:fxh_new_think@sina.com" title="fxh_new_think@sina.com" class="mail">fxh_new_think@sina.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/qiaofengfangxh/qiaofengfangxh.github.io" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://weibo.com/" target="_blank" >
+                <i class="icon icon-lg icon-weibo"></i>
+                Weibo
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">MySQL-数据库引擎</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="検索">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">MySQL-数据库引擎</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-08-26T10:30:16.000Z" itemprop="datePublished" class="page-time">
+  2019-08-26
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/mysql/">mysql</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#MySQL数据库引擎类别"><span class="post-toc-number">1.</span> <span class="post-toc-text">MySQL数据库引擎类别</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#ISAM"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">ISAM</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#MYISAM"><span class="post-toc-number">1.2.</span> <span class="post-toc-text">MYISAM</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#HEAP"><span class="post-toc-number">1.3.</span> <span class="post-toc-text">HEAP</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#INNODB和BERKLEYDB"><span class="post-toc-number">1.4.</span> <span class="post-toc-text">INNODB和BERKLEYDB</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#mysql数据引擎更换方式"><span class="post-toc-number">2.</span> <span class="post-toc-text">mysql数据引擎更换方式</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#查看当前数据库支持的引擎和默认的数据库引擎"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">查看当前数据库支持的引擎和默认的数据库引擎</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#更改数据库引擎"><span class="post-toc-number">2.2.</span> <span class="post-toc-text">更改数据库引擎</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#查看修改结果"><span class="post-toc-number">2.3.</span> <span class="post-toc-text">查看修改结果</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#MyIASM和Innodb引擎对比"><span class="post-toc-number">3.</span> <span class="post-toc-text">MyIASM和Innodb引擎对比</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#存储结构"><span class="post-toc-number">3.1.</span> <span class="post-toc-text">存储结构</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#存储空间"><span class="post-toc-number">3.2.</span> <span class="post-toc-text">存储空间</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#可移植性、备份及恢复"><span class="post-toc-number">3.3.</span> <span class="post-toc-text">可移植性、备份及恢复</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#事务支持"><span class="post-toc-number">3.4.</span> <span class="post-toc-text">事务支持</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#主键自增AUTO-INCREMENT和主键索引差异"><span class="post-toc-number">3.5.</span> <span class="post-toc-text">主键自增AUTO_INCREMENT和主键索引差异</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#表锁对比"><span class="post-toc-number">3.6.</span> <span class="post-toc-text">表锁对比</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#MySql全文索引"><span class="post-toc-number">3.7.</span> <span class="post-toc-text">MySql全文索引</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#表的具体行数"><span class="post-toc-number">3.8.</span> <span class="post-toc-text">表的具体行数</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#CRUD操作"><span class="post-toc-number">3.9.</span> <span class="post-toc-text">CRUD操作</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#外键支持"><span class="post-toc-number">3.10.</span> <span class="post-toc-text">外键支持</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#总结"><span class="post-toc-number">4.</span> <span class="post-toc-text">总结</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-MySQL-数据库引擎"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">MySQL-数据库引擎</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-08-26 18:30:16" datetime="2019-08-26T10:30:16.000Z"  itemprop="datePublished">2019-08-26</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/mysql/">mysql</a></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>数据库引擎是用于存储、处理和保护数据的核心服务。利用数据库引擎可控制访问权限并快速处理事务，从而满足企业内大多数需要处理大量数据的应用程序的要求。 使用数据库引擎创建用于联机事务处理或联机分析处理数据的关系数据库。这包括创建用于存储数据的表和用于查看、管理和保护数据安全的数据库对象（如索引、视图和存储过程）等。</p>
+<h1 id="MySQL数据库引擎类别"><a href="#MySQL数据库引擎类别" class="headerlink" title="MySQL数据库引擎类别"></a>MySQL数据库引擎类别</h1><p>MySql数据库引擎取决于mysql在安装的时候是如何被编译的。要添加一个新的引擎，就必须重新编译MYSQL。在缺省情况下，MYSQL支持三个引擎：ISAM、MYISAM和HEAP。另外两种类型INNODB，<code>特别说明：MySQL的默认‘存储引擎’在5.5版本以前是MYISAM，之后是INNODB</code>。</p>
+<h2 id="ISAM"><a href="#ISAM" class="headerlink" title="ISAM"></a>ISAM</h2><p>ISAM是一个定义明确且历经时间考验的数据表格管理方法，它在设计之时就考虑到数据库被查询的次数要远大于更新的次数。因此，ISAM执行读取操作的速度很快，而且不占用大量的内存和存储资源。ISAM的两个主要不足之处在于，它不支持事务处理，也不能够容错：如果你的硬盘崩溃了，那么数据文件就无法恢复了。如果你正在把ISAM用在关键任务应用程序里，那就必须经常备份你所有的实时数据，通过其复制特性，MYSQL能够支持这样的备份应用程序</p>
+<h2 id="MYISAM"><a href="#MYISAM" class="headerlink" title="MYISAM"></a>MYISAM</h2><p>MYISAM是MYSQL的ISAM扩展格式和缺省的数据库引擎。除了提供ISAM里所没有的索引和字段管理的功能，MYISAM还使用一种表格锁定的机制，来优化多个并发的读写操作。其代价是你需要经常运行OPTIMIZE TABLE命令，来恢复被更新机制所浪费的空间。MYISAM还有一些有用的扩展，例如用来修复数据库文件的MYISAMCHK工具和用来恢复浪费空间的MYISAMPACK工具。<br>　　MYISAM强调了快速读取操作，这可能就是为什么MYSQL受到了WEB开发如此青睐的主要原因：在WEB开发中你所进行的大量数据操作都是读取操作。所以，大多数虚拟主机提供商和INTERNET平台提供商只允许使用MYISAM格式。
+　　
+　　</p>
+<h2 id="HEAP"><a href="#HEAP" class="headerlink" title="HEAP"></a>HEAP</h2><p>HEAP允许只驻留在内存里的临时表格。驻留在内存里让HEAP要比ISAM和MYISAM都快，但是它所管理的数据是不稳定的，而且如果在关机之前没有进行保存，那么所有的数据都会丢失。在数据行被删除的时候，HEAP也不会浪费大量的空间。HEAP表格在你需要使用SELECT表达式来选择和操控数据的时候非常有用。要记住，在用完表格之后就删除表格。</p>
+<h2 id="INNODB和BERKLEYDB"><a href="#INNODB和BERKLEYDB" class="headerlink" title="INNODB和BERKLEYDB"></a>INNODB和BERKLEYDB</h2><p>INNODB和BERKLEYDB（BDB）数据库引擎都是造就MYSQL灵活性的技术的直接产品，这项技术就是MYSQL++ API。在使用MYSQL的时候，你所面对的每一个挑战几乎都源于ISAM和MYISAM数据库引擎不支持事务处理也不支持外来键。尽管要比ISAM和MYISAM引擎慢很多，但是INNODB和BDB包括了对事务处理和外来键的支持，这两点都是前两个引擎所没有的。</p>
+<h1 id="mysql数据引擎更换方式"><a href="#mysql数据引擎更换方式" class="headerlink" title="mysql数据引擎更换方式"></a>mysql数据引擎更换方式</h1><h2 id="查看当前数据库支持的引擎和默认的数据库引擎"><a href="#查看当前数据库支持的引擎和默认的数据库引擎" class="headerlink" title="查看当前数据库支持的引擎和默认的数据库引擎"></a>查看当前数据库支持的引擎和默认的数据库引擎</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show engines;</span><br></pre></td></tr></table></figure>
+
+<p>查询结果如下：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/img/mysql/engine.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+<h2 id="更改数据库引擎"><a href="#更改数据库引擎" class="headerlink" title="更改数据库引擎"></a>更改数据库引擎</h2><p>更改数据库引擎有以下3种方法，如下：</p>
+<ul>
+<li>修改配置文件my.ini</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">将my-small.ini另存为my.ini，在[mysqld]后面添加default-storage-engine=InnoDB，重启服务，数据库默认的引擎修改为InnoDB</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>建表的时候指定</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">create table mytbl(   </span><br><span class="line">    id int primary key,   </span><br><span class="line">    name varchar(50)   </span><br><span class="line">)type=MyISAM;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>建表后更改</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter table mytbl2 type = InnoDB;</span><br></pre></td></tr></table></figure>
+
+<h2 id="查看修改结果"><a href="#查看修改结果" class="headerlink" title="查看修改结果"></a>查看修改结果</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show table status from `数据库名称`</span><br></pre></td></tr></table></figure>
+
+<h1 id="MyIASM和Innodb引擎对比"><a href="#MyIASM和Innodb引擎对比" class="headerlink" title="MyIASM和Innodb引擎对比"></a>MyIASM和Innodb引擎对比</h1><h2 id="存储结构"><a href="#存储结构" class="headerlink" title="存储结构"></a>存储结构</h2><ul>
+<li><p><strong>MyISAM</strong>：每个MyISAM在磁盘上存储成三个文件。分别为：表定义文件、数据文件、索引文件。第一个文件的名字以表的名字开始，扩展名            指出文件类型。.frm文件存储表定义。数据文件的扩展名为.MYD (MYData)。索引文件的扩展名是.MYI (MYIndex)。</p>
+</li>
+<li><p><strong>InnoDB</strong>：所有的表都保存在同一个数据文件中（也可能是多个文件，或者是独立的表空间文件），InnoDB表的大小只受限于操作系统文件            的大小，一般为2GB。</p>
+</li>
+</ul>
+<h2 id="存储空间"><a href="#存储空间" class="headerlink" title="存储空间"></a>存储空间</h2><ul>
+<li><p><strong>MyISAM</strong>：MyISAM支持支持三种不同的存储格式：静态表(默认，但是注意数据末尾不能有空格，会被去掉)、动态表、压缩表。当表在创            建之后并导入数据之后，不会再进行修改操作，可以使用压缩表，极大的减少磁盘的空间占用。</p>
+</li>
+<li><p><strong>InnoDB</strong>：需要更多的内存和存储，它会在主内存中建立其专用的缓冲池用于高速缓冲数据和索引。</p>
+</li>
+</ul>
+<h2 id="可移植性、备份及恢复"><a href="#可移植性、备份及恢复" class="headerlink" title="可移植性、备份及恢复"></a>可移植性、备份及恢复</h2><ul>
+<li><p><strong>MyISAM</strong>：数据是以文件的形式存储，所以在跨平台的数据转移中会很方便。在备份和恢复时可单独针对某个表进行操作。</p>
+</li>
+<li><p><strong>InnoDB</strong>：免费的方案可以是拷贝数据文件、备份 binlog，或者用 mysqldump，在数据量达到几十G的时候就相对痛苦了。</p>
+</li>
+</ul>
+<h2 id="事务支持"><a href="#事务支持" class="headerlink" title="事务支持"></a>事务支持</h2><ul>
+<li><p><strong>MyISAM</strong>：强调的是性能，每次查询具有原子性,其执行数度比InnoDB类型更快，但是不提供事务支持。</p>
+</li>
+<li><p><strong>InnoDB</strong>：提供事务支持事务，外部键等高级数据库功能。 具有事务(commit)、回滚(rollback)和崩溃修复能力(crash recovery             capabilities)的事务安全(transaction-safe (ACID compliant))型表。</p>
+</li>
+</ul>
+<h2 id="主键自增AUTO-INCREMENT和主键索引差异"><a href="#主键自增AUTO-INCREMENT和主键索引差异" class="headerlink" title="主键自增AUTO_INCREMENT和主键索引差异"></a>主键自增AUTO_INCREMENT和主键索引差异</h2><ul>
+<li><p><strong>MyISAM</strong>：可以和其他字段一起建立联合索引。引擎的自动增长列必须是索引，如果是组合索引，自动增长可以不是第一列，他可以根据前            面几列进行排序后递增。</p>
+</li>
+<li><p><strong>InnoDB</strong>：InnoDB中必须包含只有该字段的索引。引擎的自动增长列必须是索引，如果是组合索引也必须是组合索引的第一列。</p>
+</li>
+<li><p><strong>表主键 MyISAM</strong>：允许没有任何索引和主键的表存在，索引都是保存行的地址。 </p>
+</li>
+<li><p><strong>表主键 InnoDB</strong>：如果没有设定主键或者非空唯一索引，就会自            动生成一个6字节的主键(用户不可见，数据是主索引的一部分，附加索引保存的是主索引的值，InnoDB的主键范围更大，最大            是MyISAM的2倍）。</p>
+</li>
+</ul>
+<h2 id="表锁对比"><a href="#表锁对比" class="headerlink" title="表锁对比"></a>表锁对比</h2><ul>
+<li><p><strong>MyISAM</strong>： 只支持表级锁，用户在操作myisam表时，select，update，delete，insert语句都会给表自动加锁，如果加锁以后的表                满足insert并发的情况下，可以在表的尾部插入新的数据。</p>
+</li>
+<li><p><strong>InnoDB</strong>： 支持事务和行级锁，是innodb的最大特色，行锁大幅度提高了多用户并发操作的新能，但是InnoDB的行锁，只是在WHERE的                    主键是有效的，非主键的WHERE都会锁全表的。</p>
+</li>
+</ul>
+<h2 id="MySql全文索引"><a href="#MySql全文索引" class="headerlink" title="MySql全文索引"></a>MySql全文索引</h2><ul>
+<li><p><strong>MyISAM</strong>：支持 FULLTEXT类型的全文索引。</p>
+</li>
+<li><p><strong>InnoDB</strong>：不支持FULLTEXT类型的全文索引，但是innodb可以使用sphinx插件支持全文索引，并且效果更好。</p>
+</li>
+</ul>
+<blockquote>
+<blockquote>
+<p>特别说明：InnoDB引擎对FULLTEXT索引的支持是MySQL5.6新引入的特性，之前只有MyISAM引擎支持FULLTEXT索引。对于FULLTEXT索引的内容可以使用MATCH()…AGAINST语法进行查询。但是无法支持中文全文索引，参考<a href="https://blog.csdn.net/mysqldba23/article/details/70145773/" target="_blank" rel="noopener">1</a>, MySQL5.7版本开始支持中文全文索引，参考<a href="https://blog.csdn.net/zwrj1130/article/details/55506179" target="_blank" rel="noopener">2</a></p>
+</blockquote>
+</blockquote>
+<h2 id="表的具体行数"><a href="#表的具体行数" class="headerlink" title="表的具体行数"></a>表的具体行数</h2><ul>
+<li><p><strong>MyISAM</strong>： 保存有表的总行数，如果select count() from table;会直接取出出该值。</p>
+</li>
+<li><p><strong>InnoDB</strong>： 没有保存表的总行数，如果使用select count(*) from table；就会遍历整个表，消耗相当大，但是在加了wehre条件              后，myisam和innodb处理的方式都一样。</p>
+</li>
+</ul>
+<h2 id="CRUD操作"><a href="#CRUD操作" class="headerlink" title="CRUD操作"></a>CRUD操作</h2><ul>
+<li><p><strong>MyISAM</strong>：如果执行大量的SELECT，MyISAM是更好的选择。</p>
+</li>
+<li><p><strong>InnoDB</strong>：如果你的数据执行大量的INSERT或UPDATE，出于性能方面的考虑，应该使用InnoDB表。</p>
+</li>
+</ul>
+<h2 id="外键支持"><a href="#外键支持" class="headerlink" title="外键支持"></a>外键支持</h2><ul>
+<li><p><strong>MyISAM</strong>：不支持。</p>
+</li>
+<li><p><strong>InnoDB</strong>：支持。</p>
+</li>
+</ul>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>MyISAM 强调的是性能，每次查询具有原子性,其执行速度比InnoDB类型更快，但是不提供事务支持。但是InnoDB 提供事务支持事务，外部键等高级数据库功能。 具有事务(commit)、回滚(rollback)和崩溃修复能力的事务安全(ACID)型表。MyISAM更适合读密集的表，而InnoDB更适合写密集的的表，另外MyISAM的索引与行记录是分开存储的，叫做<code>非聚集索引（UnClustered Index)</code>, InnoDB的主键索引与行记录是存储在一起的，故叫做<code>聚集索引（Clustered Index)</code>。</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最終更新：<time datetime="2019-09-02T04:08:36.000Z" itemprop="dateUpdated">2019-09-02 12:08:36</time>
+</span><br>
+
+
+        
+        感谢阅读，如有疑惑可以留下评论。文章地址：<a href="/2019/08/26/MySQL-数据库引擎/" target="_blank" rel="external">http://qiaofengfangxh.top/2019/08/26/MySQL-数据库引擎/</a>
+        
+    </div>
+    
+    <footer>
+        <a href="http://qiaofengfangxh.top">
+            <img src="/img/avatar.jpg" alt="qiaofeng-fangxianhao">
+            qiaofeng-fangxianhao
+        </a>
+    </footer>
+</blockquote>
+
+        
+<div class="page-reward">
+    <a id="rewardBtn" href="javascript:;" class="page-reward-btn waves-effect waves-circle waves-light">赏</a>
+</div>
+
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mysql/">mysql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/数据库引擎/">数据库引擎</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/聚集索引和非聚集索引/">聚集索引和非聚集索引</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2019/08/26/MySQL-数据库引擎/&title=《MySQL-数据库引擎》 — qiaofeng-fangxianhao技术博客&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2019/08/26/MySQL-数据库引擎/&title=《MySQL-数据库引擎》 — qiaofeng-fangxianhao技术博客&source=路漫漫其修远兮，吾将上下而求索！" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://qiaofengfangxh.top/2019/08/26/MySQL-数据库引擎/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《MySQL-数据库引擎》 — qiaofeng-fangxianhao技术博客&url=http://qiaofengfangxh.top/2019/08/26/MySQL-数据库引擎/&via=http://qiaofengfangxh.top" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://qiaofengfangxh.top/2019/08/26/MySQL-数据库引擎/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between flex-row-reverse">
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/08/20/ReentrantLock底层源码分析/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">ReentrantLock底层源码分析</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="comments" id="comments">
+    <div id="gitalk-container"></div>
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+        var id = location.pathname
+        if (location.pathname.length > 50) {
+          id = location.pathname.replace(/\/\d+\/\d+\/\d+\//, '').replace('/', '').substring(0, 50)
+        }
+        const gitalk = new Gitalk({
+          clientID: 'e70519153d81a4abe02e',
+          clientSecret: '191f4642e9522167bd01a66a4fa2b72ebd591b02',
+          repo: 'qiaofengfangxh.github.io',
+          owner: 'qiaofengfangxh',
+          admin: 'qiaofengfangxh',
+          id: id,  
+          title: document.title.split('|')[0],
+          distractionFreeMode: false  // Facebook-like distraction free mode
+        })
+
+        gitalk.render('gitalk-container')
+    </script>
+</section>
+
+
+
+</article>
+
+<div id="reward" class="page-modal reward-lay">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <h3 class="reward-title">
+        <i class="icon icon-quote-left"></i>
+        谢谢大爷~
+        <i class="icon icon-quote-right"></i>
+    </h3>
+    <div class="reward-content">
+        
+        <div class="reward-code">
+            <img id="rewardCode" src="/img/wechat.jpg" alt="打赏二维码">
+        </div>
+        
+        <label class="reward-toggle">
+            <input id="rewardToggle" type="checkbox" class="reward-toggle-check"
+                data-wechat="/img/wechat.jpg" data-alipay="/img/alipay.jpg">
+            <div class="reward-toggle-ctrol">
+                <span class="reward-toggle-item wechat">微信</span>
+                <span class="reward-toggle-label"></span>
+                <span class="reward-toggle-item alipay">支付宝</span>
+            </div>
+        </label>
+        
+    </div>
+</div>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>このブログの内容物は<a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ja">クリエイティブ・コモンズ 表示 - 非営利 - 継承 4.0 国際ライセンスの下に提供されています</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>qiaofeng-fangxianhao &copy; 2015 - 2020</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2019/08/26/MySQL-数据库引擎/&title=《MySQL-数据库引擎》 — qiaofeng-fangxianhao技术博客&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2019/08/26/MySQL-数据库引擎/&title=《MySQL-数据库引擎》 — qiaofeng-fangxianhao技术博客&source=路漫漫其修远兮，吾将上下而求索！" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://qiaofengfangxh.top/2019/08/26/MySQL-数据库引擎/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《MySQL-数据库引擎》 — qiaofeng-fangxianhao技术博客&url=http://qiaofengfangxh.top/2019/08/26/MySQL-数据库引擎/&via=http://qiaofengfangxh.top" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://qiaofengfangxh.top/2019/08/26/MySQL-数据库引擎/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="//api.qrserver.com/v1/create-qr-code/?data=http://qiaofengfangxh.top/2019/08/26/MySQL-数据库引擎/" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: true };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+<script>
+(function() {
+    var OriginTitile = document.title, titleTime;
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            document.title = 'qiaofeng-fangxianhao技术博客';
+            clearTimeout(titleTime);
+        } else {
+            document.title = 'qiaofeng-fangxianhao技术博客';
+            titleTime = setTimeout(function() {
+                document.title = OriginTitile;
+            },2000);
+        }
+    });
+})();
+</script>
+
+
+
+</body>
+</html>

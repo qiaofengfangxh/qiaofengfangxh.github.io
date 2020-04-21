@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>Redis-持久化数据 | qiaofeng-fangxianhao技术博客 | 路漫漫其修远兮，吾将上下而求索！</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="redis">
+    <meta name="description" content="Redis被称为是内存数据库，那是因为它会将其所有数据存储在内存里，因此Redis具有强劲的速度性能，但是，也正因为数据存储在内存中，当Redis重启后，所有存储在内存的数据就会丢失。为了使得数据持久化，Redis提供了两种方式：RDB方式和AOF方式。 RDB方式RDB方式的持久化是通过快照（snapshotting）完成的，当符合一定条件时，Redis会自动将内存中所有的数据生成一份副本并存储">
+<meta name="keywords" content="redis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis-持久化数据">
+<meta property="og:url" content="http://qiaofengfangxh.top/2019/07/28/Redis-持久化数据/index.html">
+<meta property="og:site_name" content="qiaofeng-fangxianhao技术博客">
+<meta property="og:description" content="Redis被称为是内存数据库，那是因为它会将其所有数据存储在内存里，因此Redis具有强劲的速度性能，但是，也正因为数据存储在内存中，当Redis重启后，所有存储在内存的数据就会丢失。为了使得数据持久化，Redis提供了两种方式：RDB方式和AOF方式。 RDB方式RDB方式的持久化是通过快照（snapshotting）完成的，当符合一定条件时，Redis会自动将内存中所有的数据生成一份副本并存储">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-08-15T07:30:58.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Redis-持久化数据">
+<meta name="twitter:description" content="Redis被称为是内存数据库，那是因为它会将其所有数据存储在内存里，因此Redis具有强劲的速度性能，但是，也正因为数据存储在内存中，当Redis重启后，所有存储在内存的数据就会丢失。为了使得数据持久化，Redis提供了两种方式：RDB方式和AOF方式。 RDB方式RDB方式的持久化是通过快照（snapshotting）完成的，当符合一定条件时，Redis会自动将内存中所有的数据生成一份副本并存储">
+    
+        <link rel="alternate" type="application/atom+xml" title="qiaofeng-fangxianhao技术博客" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/avatar.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">qiaofeng-fangxianhao</h5>
+          <a href="mailto:fxh_new_think@sina.com" title="fxh_new_think@sina.com" class="mail">fxh_new_think@sina.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/qiaofengfangxh/qiaofengfangxh.github.io" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://weibo.com/" target="_blank" >
+                <i class="icon icon-lg icon-weibo"></i>
+                Weibo
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Redis-持久化数据</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="検索">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Redis-持久化数据</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-07-28T08:30:16.000Z" itemprop="datePublished" class="page-time">
+  2019-07-28
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/redis/">redis</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#RDB方式"><span class="post-toc-number">1.</span> <span class="post-toc-text">RDB方式</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#根据配置规则进行自动快照"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">根据配置规则进行自动快照</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#用户执行SAVE或BGSAVE命令"><span class="post-toc-number">1.2.</span> <span class="post-toc-text">用户执行SAVE或BGSAVE命令</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#执行FLUSHALL命令"><span class="post-toc-number">1.3.</span> <span class="post-toc-text">执行FLUSHALL命令</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#执行复制（replication）"><span class="post-toc-number">1.4.</span> <span class="post-toc-text">执行复制（replication）</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#快照原理"><span class="post-toc-number">1.4.1.</span> <span class="post-toc-text">快照原理</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#AOF方式"><span class="post-toc-number">2.</span> <span class="post-toc-text">AOF方式</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-Redis-持久化数据"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">Redis-持久化数据</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-07-28 16:30:16" datetime="2019-07-28T08:30:16.000Z"  itemprop="datePublished">2019-07-28</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/redis/">redis</a></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>Redis被称为是内存数据库，那是因为它会将其所有数据存储在内存里，因此Redis具有强劲的速度性能，但是，也正因为数据存储在内存中，当Redis重启后，所有存储在内存的数据就会丢失。为了使得数据持久化，Redis提供了两种方式：RDB方式和AOF方式。</p>
+<h2 id="RDB方式"><a href="#RDB方式" class="headerlink" title="RDB方式"></a>RDB方式</h2><p>RDB方式的持久化是通过快照（snapshotting）完成的，当符合一定条件时，Redis会自动将内存中所有的数据生成一份副本并存储在硬盘中，这个过程被称为“快照”。“快照”，就类似于拍照，摁下快门那一刻，所定格的照片，就称为“快照”。Redis有4种情况会对数据进行快照：</p>
+<ul>
+<li><code>根据配置规则进行自动快照</code></li>
+<li><code>用户执行SAVE或BGSAVE命令</code></li>
+<li><code>执行FLUSHALL命令</code></li>
+<li><code>执行复制（replication）时</code></li>
+</ul>
+<h3 id="根据配置规则进行自动快照"><a href="#根据配置规则进行自动快照" class="headerlink" title="根据配置规则进行自动快照"></a>根据配置规则进行自动快照</h3><p>配置文件的自定义信息由两个参数决定：时间窗口M和改动的键的个数。</p>
+<p>如配置：save 900 1</p>
+<p>可以配置多个快照条件，每条快照条件都占一行，并且以save开头，上面这条表示900秒内有一个或一个以上的键被修改了，就进行快照。</p>
+<h3 id="用户执行SAVE或BGSAVE命令"><a href="#用户执行SAVE或BGSAVE命令" class="headerlink" title="用户执行SAVE或BGSAVE命令"></a>用户执行SAVE或BGSAVE命令</h3><p>在执行SAVE命令进行手动快照时，快照过程中会阻塞所有来自客户端的请求，当数据库数据比较多时，那么这一过程就会使得客户端等待较长的时间；相对的，执行BGSAVE命令时，则是采用异步快照，在进行快照过程中，依然响应来自客户端的请求。所以，比较常用的是BGSAVE命令。</p>
+<h3 id="执行FLUSHALL命令"><a href="#执行FLUSHALL命令" class="headerlink" title="执行FLUSHALL命令"></a>执行FLUSHALL命令</h3><p>当执行FLUSHALL命令时，Redis会清除数据库的所有数据。值得注意的是，清空数据库过程，相当于修改键，在这个过程中，只要自动快照条件不为空，Redis都会执行一次快照，换句话说，如果没有定义自动快照条件时，即使执行了FLUSHALL命令，也不会进行快照。</p>
+<h3 id="执行复制（replication）"><a href="#执行复制（replication）" class="headerlink" title="执行复制（replication）"></a>执行复制（replication）</h3><p>当设置了主从模式时，Redis会在复制初始化时进行自动快照。这里跟FLUSHALL有区别，执行复制时，即使没有设置自动快照条件，也会进行快照操作，生成RDB格式文件。</p>
+<h4 id="快照原理"><a href="#快照原理" class="headerlink" title="快照原理"></a>快照原理</h4><p>Redis默认会将快照文件存储在Redis当前进程的工作目录中的dump.rdb文件中，可以配置 dir和dbfilename两个参数设置快照文件路径。快照过程：</p>
+<ol>
+<li><code>Redis使用fork函数复制一份当前进程的副本；</code></li>
+<li><code>父进程（这里是当前进程）继续接收并处理客户端发来的命令，而子进程（副本）开始将内存中的数据写入硬盘中临时文件；</code></li>
+<li><code>当子进程写完所有数据后，就用临时文件覆盖掉旧的RDB文件，至此，完成一次快照操作。</code></li>
+</ol>
+<p>在fork函数执行的时候，操作系统会使用写时复制（copy-on-write）策略，即fork函数发生的那一刻，父子进程共享同一内存数据，当父进程要更改其中某片数据时，操作系统会将该片数据复制一份，以保证子进程不受影响，所以新的RDB格式文件保存的是执行fork那一刻的内存数据。因为使用了写时复制策略，使得在fork的时刻用了不到2倍的内存，就可以保存貌似两份的内存副本一样。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">值得注意的是: 当进行快照的过程中，如果写入操作较多，造成fork前后数据差异较大，是会使得内存使用量显著增加，</span><br><span class="line">因为内存中不仅保存当前进程的数据，还保存了fork时刻的内存数据. Redis进行快照的过程中不会修改RDB文件,  </span><br><span class="line">只有快照结束后才会将旧的文件替换成新的，也就是说任何时候RDB文件都是完整的，这对于数据库备份有一个很好的作用</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="AOF方式"><a href="#AOF方式" class="headerlink" title="AOF方式"></a>AOF方式</h2><p>通过RDB方式实现持久化，一旦Redis异常退出，，就会丢失最后一次快照之后更改的所有数据。为了降低因进程中止导致的数据丢失风险，可以使用AOF方式实现数据持久化。</p>
+<p>默认情况下，Redis是没有开启AOF方式的持久化，可以通过appendonly参数启动：appendonly yes</p>
+<p>开启AOF持久化后，每执行一条会更改Redis中数据的命令，Redis就会将该命令写入硬盘中的AOF格式的文件，即.aof格式文件存储的是一些redis指令。这个时候就要注意，当频繁操作Redis中的数据时，AOF格式文件所占内存就会越来越大，而且会有很多没用的指令，如连续执行set foo 1，set foo 2，set foo 3，那么前两条指令是没有意义的，Redis很强大，它会自动将没有意义的指令删除，即每当达到一定条件时，Redis就会自动重写AOF文件，而这个条件可以在配置文件中设置。重写的过程只和内存数据有关，和之前的AOF文件无关，这点跟RDB相似。</p>
+<p>在同步硬盘数据数据时，由于操作系统的缓存机制，数据并没有真正地写入到硬盘中，而是进入到系统的硬盘缓存。在默认的情况下，系统每个30秒会执行一次同步操作，在这30秒的过程中，如果系统异常退出，那么会导致硬盘内存中的数据丢失。Redis允许同时开启RDB和AOF方式，既保证了数据安全，又使得备份操作十分容易。AOF可以有效降低数据丢失的可能性，RDB可以使得数据备份容易达到。</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最終更新：<time datetime="2019-08-15T07:30:58.000Z" itemprop="dateUpdated">2019-08-15 15:30:58</time>
+</span><br>
+
+
+        
+        感谢阅读，如有疑惑可以留下评论。文章地址：<a href="/2019/07/28/Redis-持久化数据/" target="_blank" rel="external">http://qiaofengfangxh.top/2019/07/28/Redis-持久化数据/</a>
+        
+    </div>
+    
+    <footer>
+        <a href="http://qiaofengfangxh.top">
+            <img src="/img/avatar.jpg" alt="qiaofeng-fangxianhao">
+            qiaofeng-fangxianhao
+        </a>
+    </footer>
+</blockquote>
+
+        
+<div class="page-reward">
+    <a id="rewardBtn" href="javascript:;" class="page-reward-btn waves-effect waves-circle waves-light">赏</a>
+</div>
+
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/redis/">redis</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2019/07/28/Redis-持久化数据/&title=《Redis-持久化数据》 — qiaofeng-fangxianhao技术博客&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2019/07/28/Redis-持久化数据/&title=《Redis-持久化数据》 — qiaofeng-fangxianhao技术博客&source=路漫漫其修远兮，吾将上下而求索！" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://qiaofengfangxh.top/2019/07/28/Redis-持久化数据/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Redis-持久化数据》 — qiaofeng-fangxianhao技术博客&url=http://qiaofengfangxh.top/2019/07/28/Redis-持久化数据/&via=http://qiaofengfangxh.top" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://qiaofengfangxh.top/2019/07/28/Redis-持久化数据/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2019/08/01/Java虚拟机中的垃圾回收算法与垃圾收集器/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">Java虚拟机中的垃圾回收算法与垃圾收集器</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/07/28/Java设计模式-策略模式/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">Java设计模式-策略模式</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="comments" id="comments">
+    <div id="gitalk-container"></div>
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+        var id = location.pathname
+        if (location.pathname.length > 50) {
+          id = location.pathname.replace(/\/\d+\/\d+\/\d+\//, '').replace('/', '').substring(0, 50)
+        }
+        const gitalk = new Gitalk({
+          clientID: 'e70519153d81a4abe02e',
+          clientSecret: '191f4642e9522167bd01a66a4fa2b72ebd591b02',
+          repo: 'qiaofengfangxh.github.io',
+          owner: 'qiaofengfangxh',
+          admin: 'qiaofengfangxh',
+          id: id,  
+          title: document.title.split('|')[0],
+          distractionFreeMode: false  // Facebook-like distraction free mode
+        })
+
+        gitalk.render('gitalk-container')
+    </script>
+</section>
+
+
+
+</article>
+
+<div id="reward" class="page-modal reward-lay">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <h3 class="reward-title">
+        <i class="icon icon-quote-left"></i>
+        谢谢大爷~
+        <i class="icon icon-quote-right"></i>
+    </h3>
+    <div class="reward-content">
+        
+        <div class="reward-code">
+            <img id="rewardCode" src="/img/wechat.jpg" alt="打赏二维码">
+        </div>
+        
+        <label class="reward-toggle">
+            <input id="rewardToggle" type="checkbox" class="reward-toggle-check"
+                data-wechat="/img/wechat.jpg" data-alipay="/img/alipay.jpg">
+            <div class="reward-toggle-ctrol">
+                <span class="reward-toggle-item wechat">微信</span>
+                <span class="reward-toggle-label"></span>
+                <span class="reward-toggle-item alipay">支付宝</span>
+            </div>
+        </label>
+        
+    </div>
+</div>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>このブログの内容物は<a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ja">クリエイティブ・コモンズ 表示 - 非営利 - 継承 4.0 国際ライセンスの下に提供されています</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>qiaofeng-fangxianhao &copy; 2015 - 2020</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2019/07/28/Redis-持久化数据/&title=《Redis-持久化数据》 — qiaofeng-fangxianhao技术博客&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2019/07/28/Redis-持久化数据/&title=《Redis-持久化数据》 — qiaofeng-fangxianhao技术博客&source=路漫漫其修远兮，吾将上下而求索！" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://qiaofengfangxh.top/2019/07/28/Redis-持久化数据/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Redis-持久化数据》 — qiaofeng-fangxianhao技术博客&url=http://qiaofengfangxh.top/2019/07/28/Redis-持久化数据/&via=http://qiaofengfangxh.top" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://qiaofengfangxh.top/2019/07/28/Redis-持久化数据/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="//api.qrserver.com/v1/create-qr-code/?data=http://qiaofengfangxh.top/2019/07/28/Redis-持久化数据/" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: true };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+<script>
+(function() {
+    var OriginTitile = document.title, titleTime;
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            document.title = 'qiaofeng-fangxianhao技术博客';
+            clearTimeout(titleTime);
+        } else {
+            document.title = 'qiaofeng-fangxianhao技术博客';
+            titleTime = setTimeout(function() {
+                document.title = OriginTitile;
+            },2000);
+        }
+    });
+})();
+</script>
+
+
+
+</body>
+</html>

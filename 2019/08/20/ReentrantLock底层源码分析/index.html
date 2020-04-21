@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>ReentrantLock底层源码分析 | qiaofeng-fangxianhao技术博客 | 路漫漫其修远兮，吾将上下而求索！</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="java锁,ReentrantLock,待完善">
+    <meta name="description" content="本博文将会简单介绍重入锁 ReentrantLock 中的一些概念和相关原理，包括可重入、公平和非公平锁等原理。 简介可重入锁ReentrantLock自 JDK 1.5 被引入，功能上与synchronized关键字类似。所谓的可重入是指，线程可对同一把锁进行重复加锁，而不会被阻塞住，这样可避免死锁的产生。ReentrantLock 的主要功能和 synchronized 关键字一致，均是用于多">
+<meta name="keywords" content="java锁,ReentrantLock,待完善">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ReentrantLock底层源码分析">
+<meta property="og:url" content="http://qiaofengfangxh.top/2019/08/20/ReentrantLock底层源码分析/index.html">
+<meta property="og:site_name" content="qiaofeng-fangxianhao技术博客">
+<meta property="og:description" content="本博文将会简单介绍重入锁 ReentrantLock 中的一些概念和相关原理，包括可重入、公平和非公平锁等原理。 简介可重入锁ReentrantLock自 JDK 1.5 被引入，功能上与synchronized关键字类似。所谓的可重入是指，线程可对同一把锁进行重复加锁，而不会被阻塞住，这样可避免死锁的产生。ReentrantLock 的主要功能和 synchronized 关键字一致，均是用于多">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-08-26T10:23:22.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ReentrantLock底层源码分析">
+<meta name="twitter:description" content="本博文将会简单介绍重入锁 ReentrantLock 中的一些概念和相关原理，包括可重入、公平和非公平锁等原理。 简介可重入锁ReentrantLock自 JDK 1.5 被引入，功能上与synchronized关键字类似。所谓的可重入是指，线程可对同一把锁进行重复加锁，而不会被阻塞住，这样可避免死锁的产生。ReentrantLock 的主要功能和 synchronized 关键字一致，均是用于多">
+    
+        <link rel="alternate" type="application/atom+xml" title="qiaofeng-fangxianhao技术博客" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/avatar.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">qiaofeng-fangxianhao</h5>
+          <a href="mailto:fxh_new_think@sina.com" title="fxh_new_think@sina.com" class="mail">fxh_new_think@sina.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/qiaofengfangxh/qiaofengfangxh.github.io" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://weibo.com/" target="_blank" >
+                <i class="icon icon-lg icon-weibo"></i>
+                Weibo
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">ReentrantLock底层源码分析</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="検索">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">ReentrantLock底层源码分析</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-08-20T08:30:16.000Z" itemprop="datePublished" class="page-time">
+  2019-08-20
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/ReentrantLock/">ReentrantLock</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#简介"><span class="post-toc-number">1.</span> <span class="post-toc-text">简介</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#原理"><span class="post-toc-number">2.</span> <span class="post-toc-text">原理</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#可重入"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">可重入</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#公平与非公平"><span class="post-toc-number">2.2.</span> <span class="post-toc-text">公平与非公平</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#源码分析"><span class="post-toc-number">3.</span> <span class="post-toc-text">源码分析</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#创建一个非公平锁测试"><span class="post-toc-number">3.1.</span> <span class="post-toc-text">创建一个非公平锁测试</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#加锁流程的入口方法-lock"><span class="post-toc-number">3.2.</span> <span class="post-toc-text">加锁流程的入口方法:lock()</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#尝试获取锁的通用方法-tryAcquire"><span class="post-toc-number">3.3.</span> <span class="post-toc-text">尝试获取锁的通用方法:tryAcquire()</span></a></li></ol></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-ReentrantLock底层源码分析"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">ReentrantLock底层源码分析</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-08-20 16:30:16" datetime="2019-08-20T08:30:16.000Z"  itemprop="datePublished">2019-08-20</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/ReentrantLock/">ReentrantLock</a></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>本博文将会简单介绍重入锁 ReentrantLock 中的一些概念和相关原理，包括可重入、公平和非公平锁等原理。</p>
+<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>可重入锁ReentrantLock自 JDK 1.5 被引入，功能上与synchronized关键字类似。所谓的可重入是指，线程可对同一把锁进行重复加锁，而不会被阻塞住，这样可避免死锁的产生。ReentrantLock 的主要功能和 synchronized 关键字一致，均是用于多线程的同步。但除此之外，ReentrantLock 在功能上比 synchronized 更为丰富。比如 ReentrantLock 在加锁期间，可响应中断，可设置超时等，ReentrantLock 是我们日常使用很频繁的一种锁，所以在使用之余，我们也应该去了解一下它的内部实现原理。ReentrantLock 内部是基于 AbstractQueuedSynchronizer（以下简称AQS）实现的。</p>
+<h1 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h1><h2 id="可重入"><a href="#可重入" class="headerlink" title="可重入"></a>可重入</h2><p>比如现在有方法 m1 和 m2，两个方法均使用了同一把锁对方法进行同步控制，同时方法 m1 会调用 m2。线程 t 进入方法 m1 成功获得了锁，此时线程 t 要在没有释放锁的情况下，调用 m2 方法。由于 m1 和 m2 使用的是同一把可重入锁，所以线程 t 可以进入方法 m2，并再次获得锁，而不会被阻塞住。示例代码大致如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">m1</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    lock.lock();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 调用 m2，因为可重入，所以并不会被阻塞</span></span><br><span class="line">        m2();</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        lock.unlock()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">m2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   	lock.lock();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// do something</span></span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        lock.unlock()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>假如 lock 是不可重入锁，那么上面的示例代码必然会引起死锁情况的发生。这里请大家思考一个问题，ReentrantLock 的可重入特性是怎样实现的呢？简单说一下，ReentrantLock 内部是通过 AQS 实现同步控制的，AQS 有一个变量 state 用于记录同步状态。初始情况下，state = 0，表示 ReentrantLock 目前处于解锁状态。如果有线程调用 lock 方法进行加锁，state 就由0变为1，如果该线程再次调用 lock 方法加锁，就让其自增，即 state++。线程每调用一次 unlock 方法释放锁，会让 state–。通过查询 state 的数值，即可知道 ReentrantLock 被重入的次数了。</p>
+<h2 id="公平与非公平"><a href="#公平与非公平" class="headerlink" title="公平与非公平"></a>公平与非公平</h2><p>公平与非公平指的是线程获取锁的方式。公平模式下，线程在同步队列中通过 FIFO 的方式获取锁，每个线程最终都能获取锁。在非公平模式下，线程会通过“插队”的方式去抢占锁，抢不到的则进入同步队列进行排队。默认情况下，ReentrantLock 使用的是非公平模式获取锁，而不是公平模式。不过我们也可通过 ReentrantLock 构造方法ReentrantLock(boolean fair)调整加锁的模式。</p>
+<p>既然既然有两种不同的加锁模式，那么他们有什么优缺点呢？答案如下：</p>
+<p>公平模式下，可保证每个线程最终都能获得锁，但效率相对比较较低。非公平模式下，效率比较高，但可能会导致线程出现饥饿的情况。即一些线程迟迟得不到锁，每次即将到手的锁都有可能被其他线程抢了。这里再提个问题，为啥非公平模式抢了其他线程获取锁的机会，而整个程序的运行效率会更高呢？说实话，开始我也不明白。不过好在<a href="https://book.douban.com/subject/10484692/" target="_blank" rel="noopener">《Java并发编程实战》</a><code>在第13.3节 公平性（p232）</code>说明了具体的原因，这里引用一下：</p>
+<p>在激烈竞争的情况下，非公平锁的性能高于公平锁的性能的一个原因是：在恢复一个被挂起的线程与该线程真正开始运行之间存在着严重的延迟。假设线程 A 持有一个锁，并且线程 B 请求这个锁。由于这个线程已经被线程 A 持有，因此 B 将被挂起。当 A 释放锁时，B 将被唤醒，因此会再次尝试获取锁。与此同时，如果 C 也请求这个锁，那么 C 很有可能会在 B 被完全唤醒前获得、使用以及释放这个锁。这样的情况时一种“双赢”的局面：B 获得锁的时刻并没有推迟，C 更早的获得了锁，并且吞吐量也获得了提高。<a href="https://book.douban.com/subject/10484692/" target="_blank" rel="noopener">《Java并发编程实战》</a><code>在其5.3.2 公平与非公平锁的区别（p137）</code>分析了另一个可能的原因。即公平锁线程切换次数要比非公平锁线程切换次数多得多，因此效率上要低一些。</p>
+<h1 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h1><h2 id="创建一个非公平锁测试"><a href="#创建一个非公平锁测试" class="headerlink" title="创建一个非公平锁测试"></a>创建一个非公平锁测试</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NoFairLockTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//创建非公平锁</span></span><br><span class="line">        ReentrantLock lock = <span class="keyword">new</span> ReentrantLock(<span class="keyword">false</span>);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line"></span><br><span class="line">            <span class="comment">//加锁</span></span><br><span class="line">            lock.lock();</span><br><span class="line"></span><br><span class="line">            <span class="comment">//模拟业务处理用时</span></span><br><span class="line">            TimeUnit.SECONDS.sleep(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="comment">//释放锁</span></span><br><span class="line">            lock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="加锁流程的入口方法-lock"><a href="#加锁流程的入口方法-lock" class="headerlink" title="加锁流程的入口方法:lock()"></a>加锁流程的入口方法:lock()</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//加锁流程真正意义上的入口</span></span><br><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">void</span> <span class="title">lock</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">//以cas方式尝试将AQS中的state从0更新为1</span></span><br><span class="line">    <span class="keyword">if</span> (compareAndSetState(<span class="number">0</span>, <span class="number">1</span>))</span><br><span class="line">        setExclusiveOwnerThread(Thread.currentThread());<span class="comment">//获取锁成功则将当前线程标记为持有锁的线程,然后直接返回</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        acquire(<span class="number">1</span>);<span class="comment">//获取锁失败则执行该方法</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先尝试快速获取锁,以cas的方式将state的值更新为1,只有当state的原值为0时更新才能成功,因为state在ReentrantLock的语境下等同于锁被线程重入的次数,这意味着只有当前锁未被任何线程持有时该动作才会返回成功。若获取锁成功,则将当前线程标记为持有锁的线程,然后整个加锁流程就结束了。若获取锁失败,则执行acquire方法</p>
+<h2 id="尝试获取锁的通用方法-tryAcquire"><a href="#尝试获取锁的通用方法-tryAcquire" class="headerlink" title="尝试获取锁的通用方法:tryAcquire()"></a>尝试获取锁的通用方法:tryAcquire()</h2><p>tryAcquire是AQS中定义的钩子方法,如下所示:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">boolean</span> <span class="title">tryAcquire</span><span class="params">(<span class="keyword">int</span> arg)</span> </span>&#123;</span><br><span class="line">   	<span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>ReentrantLock在公平和非公平模式下对此有不同实现,非公平模式的实现如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">tryAcquire</span><span class="params">(<span class="keyword">int</span> acquires)</span> </span>&#123;</span><br><span class="line">   	<span class="keyword">return</span> nonfairTryAcquire(acquires);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>nonfairTryAcquire()方法才是核心的尝试获取锁的方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">nonfairTryAcquire</span><span class="params">(<span class="keyword">int</span> acquires)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> Thread current = Thread.currentThread();<span class="comment">//获取当前线程实例</span></span><br><span class="line">    <span class="keyword">int</span> c = getState();<span class="comment">//获取state变量的值,即当前锁被重入的次数</span></span><br><span class="line">    <span class="keyword">if</span> (c == <span class="number">0</span>) &#123;   <span class="comment">//state为0,说明当前锁未被任何线程持有</span></span><br><span class="line">        <span class="keyword">if</span> (compareAndSetState(<span class="number">0</span>, acquires)) &#123; <span class="comment">//以cas方式获取锁</span></span><br><span class="line">            setExclusiveOwnerThread(current);  <span class="comment">//将当前线程标记为持有锁的线程</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;<span class="comment">//获取锁成功,非重入</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (current == getExclusiveOwnerThread()) &#123; <span class="comment">//当前线程就是持有锁的线程,说明该锁被重入了</span></span><br><span class="line">        <span class="keyword">int</span> nextc = c + acquires;<span class="comment">//计算state变量要更新的值</span></span><br><span class="line">        <span class="keyword">if</span> (nextc &lt; <span class="number">0</span>) <span class="comment">// overflow</span></span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> Error(<span class="string">"Maximum lock count exceeded"</span>);</span><br><span class="line">        setState(nextc);<span class="comment">//非同步方式更新state值</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;  <span class="comment">//获取锁成功,重入</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;     <span class="comment">//走到这里说明尝试获取锁失败</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这是非公平模式下获取锁的通用方法。它囊括了当前线程在尝试获取锁时的所有可能情况：</p>
+<ol>
+<li>当前锁未被任何线程持有(state=0),则以cas方式获取锁,若获取成功则设置exclusiveOwnerThread为当前线程,然后返回成功的结果；若cas失败,说明在得到state=0和cas获取锁之间有其他线程已经获取了锁,返回失败结果。</li>
+<li>若锁已经被当前线程获取(state&gt;0,exclusiveOwnerThread为当前线程),则将锁的重入次数加1(state+1),然后返回成功结果。因为该线程之前已经获得了锁,所以这个累加操作不用同步。</li>
+<li>若当前锁已经被其他线程持有(state&gt;0,exclusiveOwnerThread不为当前线程),则直接返回失败结果<br>因为我们用state来统计锁被线程重入的次数,所以当前线程尝试获取锁的操作是否成功可以简化为:state值是否成功累加1,是则尝试获取锁成功,否则尝试获取锁失败.</li>
+</ol>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最終更新：<time datetime="2019-08-26T10:23:22.000Z" itemprop="dateUpdated">2019-08-26 18:23:22</time>
+</span><br>
+
+
+        
+        感谢阅读，如有疑惑可以留下评论。文章地址：<a href="/2019/08/20/ReentrantLock底层源码分析/" target="_blank" rel="external">http://qiaofengfangxh.top/2019/08/20/ReentrantLock底层源码分析/</a>
+        
+    </div>
+    
+    <footer>
+        <a href="http://qiaofengfangxh.top">
+            <img src="/img/avatar.jpg" alt="qiaofeng-fangxianhao">
+            qiaofeng-fangxianhao
+        </a>
+    </footer>
+</blockquote>
+
+        
+<div class="page-reward">
+    <a id="rewardBtn" href="javascript:;" class="page-reward-btn waves-effect waves-circle waves-light">赏</a>
+</div>
+
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ReentrantLock/">ReentrantLock</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java锁/">java锁</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/待完善/">待完善</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2019/08/20/ReentrantLock底层源码分析/&title=《ReentrantLock底层源码分析》 — qiaofeng-fangxianhao技术博客&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2019/08/20/ReentrantLock底层源码分析/&title=《ReentrantLock底层源码分析》 — qiaofeng-fangxianhao技术博客&source=路漫漫其修远兮，吾将上下而求索！" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://qiaofengfangxh.top/2019/08/20/ReentrantLock底层源码分析/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《ReentrantLock底层源码分析》 — qiaofeng-fangxianhao技术博客&url=http://qiaofengfangxh.top/2019/08/20/ReentrantLock底层源码分析/&via=http://qiaofengfangxh.top" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://qiaofengfangxh.top/2019/08/20/ReentrantLock底层源码分析/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2019/08/26/MySQL-数据库引擎/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">MySQL-数据库引擎</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/08/10/线程池ThreadPoolExecutor源码分析/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">线程池ThreadPoolExecutor源码学习和总结</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="comments" id="comments">
+    <div id="gitalk-container"></div>
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+        var id = location.pathname
+        if (location.pathname.length > 50) {
+          id = location.pathname.replace(/\/\d+\/\d+\/\d+\//, '').replace('/', '').substring(0, 50)
+        }
+        const gitalk = new Gitalk({
+          clientID: 'e70519153d81a4abe02e',
+          clientSecret: '191f4642e9522167bd01a66a4fa2b72ebd591b02',
+          repo: 'qiaofengfangxh.github.io',
+          owner: 'qiaofengfangxh',
+          admin: 'qiaofengfangxh',
+          id: id,  
+          title: document.title.split('|')[0],
+          distractionFreeMode: false  // Facebook-like distraction free mode
+        })
+
+        gitalk.render('gitalk-container')
+    </script>
+</section>
+
+
+
+</article>
+
+<div id="reward" class="page-modal reward-lay">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <h3 class="reward-title">
+        <i class="icon icon-quote-left"></i>
+        谢谢大爷~
+        <i class="icon icon-quote-right"></i>
+    </h3>
+    <div class="reward-content">
+        
+        <div class="reward-code">
+            <img id="rewardCode" src="/img/wechat.jpg" alt="打赏二维码">
+        </div>
+        
+        <label class="reward-toggle">
+            <input id="rewardToggle" type="checkbox" class="reward-toggle-check"
+                data-wechat="/img/wechat.jpg" data-alipay="/img/alipay.jpg">
+            <div class="reward-toggle-ctrol">
+                <span class="reward-toggle-item wechat">微信</span>
+                <span class="reward-toggle-label"></span>
+                <span class="reward-toggle-item alipay">支付宝</span>
+            </div>
+        </label>
+        
+    </div>
+</div>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>このブログの内容物は<a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ja">クリエイティブ・コモンズ 表示 - 非営利 - 継承 4.0 国際ライセンスの下に提供されています</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>qiaofeng-fangxianhao &copy; 2015 - 2020</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2019/08/20/ReentrantLock底层源码分析/&title=《ReentrantLock底层源码分析》 — qiaofeng-fangxianhao技术博客&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2019/08/20/ReentrantLock底层源码分析/&title=《ReentrantLock底层源码分析》 — qiaofeng-fangxianhao技术博客&source=路漫漫其修远兮，吾将上下而求索！" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://qiaofengfangxh.top/2019/08/20/ReentrantLock底层源码分析/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《ReentrantLock底层源码分析》 — qiaofeng-fangxianhao技术博客&url=http://qiaofengfangxh.top/2019/08/20/ReentrantLock底层源码分析/&via=http://qiaofengfangxh.top" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://qiaofengfangxh.top/2019/08/20/ReentrantLock底层源码分析/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="//api.qrserver.com/v1/create-qr-code/?data=http://qiaofengfangxh.top/2019/08/20/ReentrantLock底层源码分析/" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: true };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+<script>
+(function() {
+    var OriginTitile = document.title, titleTime;
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            document.title = 'qiaofeng-fangxianhao技术博客';
+            clearTimeout(titleTime);
+        } else {
+            document.title = 'qiaofeng-fangxianhao技术博客';
+            titleTime = setTimeout(function() {
+                document.title = OriginTitile;
+            },2000);
+        }
+    });
+})();
+</script>
+
+
+
+</body>
+</html>
