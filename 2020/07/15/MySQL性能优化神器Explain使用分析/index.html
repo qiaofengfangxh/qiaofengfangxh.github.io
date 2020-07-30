@@ -25,7 +25,7 @@
 <meta name="keywords" content="mysql,sql优化,索引学习">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MySQL 性能优化神器 Explain 使用分析">
-<meta property="og:url" content="http://qiaofengfangxh.top/2019/07/12/MySQL性能优化神器Explain使用分析/index.html">
+<meta property="og:url" content="http://qiaofengfangxh.top/2020/07/15/MySQL性能优化神器Explain使用分析/index.html">
 <meta property="og:site_name" content="qiaofeng-fangxianhao技术博客">
 <meta property="og:description" content="介绍MySQL 提供了一个 EXPLAIN 命令, 它可以对 SELECT 语句进行分析,并输出 SELECT 执行的详细信息, 以供开发人员针对性优化.EXPLAIN 命令用法十分简单,在 SELECT 语句前加上 Explain 就可以了, 例如:EXPLAIN SELECT * from user_info WHERE id &amp;lt; 300; 准备工作为了接下来方便演示 EXPLAIN 的">
 <meta property="og:locale" content="default">
@@ -38,7 +38,7 @@
 <meta property="og:image" content="http://qiaofengfangxh.top/img/explain-5.jpg">
 <meta property="og:image" content="http://qiaofengfangxh.top/img/explain-6.jpg">
 <meta property="og:image" content="http://qiaofengfangxh.top/img/explain-7.jpg">
-<meta property="og:updated_time" content="2019-07-31T09:27:50.000Z">
+<meta property="og:updated_time" content="2020-07-30T01:41:17.974Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="MySQL 性能优化神器 Explain 使用分析">
 <meta name="twitter:description" content="介绍MySQL 提供了一个 EXPLAIN 命令, 它可以对 SELECT 语句进行分析,并输出 SELECT 执行的详细信息, 以供开发人员针对性优化.EXPLAIN 命令用法十分简单,在 SELECT 语句前加上 Explain 就可以了, 例如:EXPLAIN SELECT * from user_info WHERE id &amp;lt; 300; 准备工作为了接下来方便演示 EXPLAIN 的">
@@ -136,7 +136,7 @@
             <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
                 <i class="icon icon-lg icon-chevron-left"></i>
             </a>
-            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="検索">
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="Search">
             <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
                 <i class="icon icon-lg icon-search"></i>
             </a>
@@ -155,8 +155,8 @@
         <h1 class="title">MySQL 性能优化神器 Explain 使用分析</h1>
         <h5 class="subtitle">
             
-                <time datetime="2019-07-12T10:30:16.000Z" itemprop="datePublished" class="page-time">
-  2019-07-12
+                <time datetime="2020-07-15T10:30:16.000Z" itemprop="datePublished" class="page-time">
+  2020-07-15
 </time>
 
 
@@ -188,7 +188,7 @@
     <div class="post-card">
         <h1 class="post-card-title">MySQL 性能优化神器 Explain 使用分析</h1>
         <div class="post-meta">
-            <time class="post-time" title="2019-07-12 18:30:16" datetime="2019-07-12T10:30:16.000Z"  itemprop="datePublished">2019-07-12</time>
+            <time class="post-time" title="2020-07-15 18:30:16" datetime="2020-07-15T10:30:16.000Z"  itemprop="datePublished">2020-07-15</time>
 
             
 	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/mysql/">mysql</a></li></ul>
@@ -375,12 +375,12 @@ index 类型通常出现在: 所要查询的数据直接在索引树中就可以
     <div class="content">
         
 <span class="post-time">
-    最終更新：<time datetime="2019-07-31T09:27:50.000Z" itemprop="dateUpdated">2019-07-31 17:27:50</time>
+    Last updated: <time datetime="2020-07-30T01:41:17.974Z" itemprop="dateUpdated">2020-07-30 09:41:17</time>
 </span><br>
 
 
         
-        感谢阅读，如有疑惑可以留下评论。文章地址：<a href="/2019/07/12/MySQL性能优化神器Explain使用分析/" target="_blank" rel="external">http://qiaofengfangxh.top/2019/07/12/MySQL性能优化神器Explain使用分析/</a>
+        感谢阅读，如有疑惑可以留下评论。文章地址：<a href="/2020/07/15/MySQL性能优化神器Explain使用分析/" target="_blank" rel="external">http://qiaofengfangxh.top/2020/07/15/MySQL性能优化神器Explain使用分析/</a>
         
     </div>
     
@@ -411,7 +411,7 @@ index 类型通常出现在: 所要查询的数据直接在索引树中就可以
 <div class="page-share" id="pageShare">
     <ul class="reset share-icons">
       <li>
-        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2019/07/12/MySQL性能优化神器Explain使用分析/&title=《MySQL 性能优化神器 Explain 使用分析》 — qiaofeng-fangxianhao技术博客&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2020/07/15/MySQL性能优化神器Explain使用分析/&title=《MySQL 性能优化神器 Explain 使用分析》 — qiaofeng-fangxianhao技术博客&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
           <i class="icon icon-weibo"></i>
         </a>
       </li>
@@ -421,22 +421,22 @@ index 类型通常出现在: 所要查询的数据直接在索引树中就可以
         </a>
       </li>
       <li>
-        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2019/07/12/MySQL性能优化神器Explain使用分析/&title=《MySQL 性能优化神器 Explain 使用分析》 — qiaofeng-fangxianhao技术博客&source=路漫漫其修远兮，吾将上下而求索！" data-title=" QQ">
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2020/07/15/MySQL性能优化神器Explain使用分析/&title=《MySQL 性能优化神器 Explain 使用分析》 — qiaofeng-fangxianhao技术博客&source=路漫漫其修远兮，吾将上下而求索！" data-title=" QQ">
           <i class="icon icon-qq"></i>
         </a>
       </li>
       <li>
-        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://qiaofengfangxh.top/2019/07/12/MySQL性能优化神器Explain使用分析/" data-title=" Facebook">
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://qiaofengfangxh.top/2020/07/15/MySQL性能优化神器Explain使用分析/" data-title=" Facebook">
           <i class="icon icon-facebook"></i>
         </a>
       </li>
       <li>
-        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《MySQL 性能优化神器 Explain 使用分析》 — qiaofeng-fangxianhao技术博客&url=http://qiaofengfangxh.top/2019/07/12/MySQL性能优化神器Explain使用分析/&via=http://qiaofengfangxh.top" data-title=" Twitter">
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《MySQL 性能优化神器 Explain 使用分析》 — qiaofeng-fangxianhao技术博客&url=http://qiaofengfangxh.top/2020/07/15/MySQL性能优化神器Explain使用分析/&via=http://qiaofengfangxh.top" data-title=" Twitter">
           <i class="icon icon-twitter"></i>
         </a>
       </li>
       <li>
-        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://qiaofengfangxh.top/2019/07/12/MySQL性能优化神器Explain使用分析/" data-title=" Google+">
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://qiaofengfangxh.top/2020/07/15/MySQL性能优化神器Explain使用分析/" data-title=" Google+">
           <i class="icon icon-google-plus"></i>
         </a>
       </li>
@@ -459,13 +459,20 @@ index 类型通常出现在: 所要查询的数据直接在索引树中就可以
 <nav class="post-nav flex-row flex-justify-between">
   
     <div class="waves-block waves-effect prev">
-      <a href="/2019/07/28/Java设计模式-策略模式/" id="post-prev" class="post-nav-link">
+      <a href="/2020/07/18/Redis-持久化数据/" id="post-prev" class="post-nav-link">
         <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
-        <h4 class="title">Java设计模式-策略模式</h4>
+        <h4 class="title">Redis-持久化数据</h4>
       </a>
     </div>
   
 
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2020/07/11/MySQL-数据库引擎/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">MySQL-数据库引擎</h4>
+      </a>
+    </div>
   
 </nav>
 
@@ -564,7 +571,7 @@ index 类型通常出现在: 所要查询的数据直接在索引树中就可以
             
                 <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
             
-            <span>このブログの内容物は<a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ja">クリエイティブ・コモンズ 表示 - 非営利 - 継承 4.0 国際ライセンスの下に提供されています</a></span>
+            <span>This blog is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.</span>
         </p>
     </div>
     <div class="bottom">
@@ -586,7 +593,7 @@ index 类型通常出现在: 所要查询的数据直接在索引树中就可以
 <div class="global-share" id="globalShare">
     <ul class="reset share-icons">
       <li>
-        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2019/07/12/MySQL性能优化神器Explain使用分析/&title=《MySQL 性能优化神器 Explain 使用分析》 — qiaofeng-fangxianhao技术博客&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2020/07/15/MySQL性能优化神器Explain使用分析/&title=《MySQL 性能优化神器 Explain 使用分析》 — qiaofeng-fangxianhao技术博客&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
           <i class="icon icon-weibo"></i>
         </a>
       </li>
@@ -596,22 +603,22 @@ index 类型通常出现在: 所要查询的数据直接在索引树中就可以
         </a>
       </li>
       <li>
-        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2019/07/12/MySQL性能优化神器Explain使用分析/&title=《MySQL 性能优化神器 Explain 使用分析》 — qiaofeng-fangxianhao技术博客&source=路漫漫其修远兮，吾将上下而求索！" data-title=" QQ">
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2020/07/15/MySQL性能优化神器Explain使用分析/&title=《MySQL 性能优化神器 Explain 使用分析》 — qiaofeng-fangxianhao技术博客&source=路漫漫其修远兮，吾将上下而求索！" data-title=" QQ">
           <i class="icon icon-qq"></i>
         </a>
       </li>
       <li>
-        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://qiaofengfangxh.top/2019/07/12/MySQL性能优化神器Explain使用分析/" data-title=" Facebook">
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://qiaofengfangxh.top/2020/07/15/MySQL性能优化神器Explain使用分析/" data-title=" Facebook">
           <i class="icon icon-facebook"></i>
         </a>
       </li>
       <li>
-        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《MySQL 性能优化神器 Explain 使用分析》 — qiaofeng-fangxianhao技术博客&url=http://qiaofengfangxh.top/2019/07/12/MySQL性能优化神器Explain使用分析/&via=http://qiaofengfangxh.top" data-title=" Twitter">
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《MySQL 性能优化神器 Explain 使用分析》 — qiaofeng-fangxianhao技术博客&url=http://qiaofengfangxh.top/2020/07/15/MySQL性能优化神器Explain使用分析/&via=http://qiaofengfangxh.top" data-title=" Twitter">
           <i class="icon icon-twitter"></i>
         </a>
       </li>
       <li>
-        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://qiaofengfangxh.top/2019/07/12/MySQL性能优化神器Explain使用分析/" data-title=" Google+">
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://qiaofengfangxh.top/2020/07/15/MySQL性能优化神器Explain使用分析/" data-title=" Google+">
           <i class="icon icon-google-plus"></i>
         </a>
       </li>
@@ -622,7 +629,7 @@ index 类型通常出现在: 所要查询的数据直接在索引树中就可以
 <div class="page-modal wx-share" id="wxShare">
     <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
-    <img src="//api.qrserver.com/v1/create-qr-code/?data=http://qiaofengfangxh.top/2019/07/12/MySQL性能优化神器Explain使用分析/" alt="微信分享二维码">
+    <img src="//api.qrserver.com/v1/create-qr-code/?data=http://qiaofengfangxh.top/2020/07/15/MySQL性能优化神器Explain使用分析/" alt="微信分享二维码">
 </div>
 
 
