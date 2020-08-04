@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>qiaofeng-fangxianhao技术博客</title>
+  <title>qiaofeng-fangxianhao</title>
   
-  <subtitle>路漫漫其修远兮，吾将上下而求索！</subtitle>
+  <subtitle>书山有路勤为径</subtitle>
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://qiaofengfangxh.top/"/>
