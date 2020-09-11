@@ -25,11 +25,11 @@
 <meta name="keywords" content="java,线程池">
 <meta property="og:type" content="article">
 <meta property="og:title" content="线程池ThreadPoolExecutor源码学习和总结">
-<meta property="og:url" content="http://qiaofengfangxh.top/2020/07/23/线程池ThreadPoolExecutor源码分析/index.html">
+<meta property="og:url" content="http://qiaofengfangxh.top/2020/07/25/线程池ThreadPoolExecutor源码分析/index.html">
 <meta property="og:site_name" content="qiaofeng-fangxianhao">
 <meta property="og:description" content="线程池的作用Thread其实是一种特别重量级的资源，创建、启动、销毁其实都是比较耗费系统资源的，因此对于线程的重复利用是一种特别好的编程习惯，加之程序中可创建的线程数量是有限的，一般系统的性能越好，可以创建的线程数目就越多。但是当线程创建的越多时，系统的性能就会越差。自JDK1.5起，Util包就提供了ExecutorService线程池的实现，主要目的是为了重复利用线程，提高系统的效率。 线程池">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2020-07-30T01:41:44.883Z">
+<meta property="og:updated_time" content="2020-09-11T12:28:44.540Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="线程池ThreadPoolExecutor源码学习和总结">
 <meta name="twitter:description" content="线程池的作用Thread其实是一种特别重量级的资源，创建、启动、销毁其实都是比较耗费系统资源的，因此对于线程的重复利用是一种特别好的编程习惯，加之程序中可创建的线程数量是有限的，一般系统的性能越好，可以创建的线程数目就越多。但是当线程创建的越多时，系统的性能就会越差。自JDK1.5起，Util包就提供了ExecutorService线程池的实现，主要目的是为了重复利用线程，提高系统的效率。 线程池">
@@ -126,7 +126,7 @@
             <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
                 <i class="icon icon-lg icon-chevron-left"></i>
             </a>
-            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="検索">
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="Search">
             <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
                 <i class="icon icon-lg icon-search"></i>
             </a>
@@ -145,8 +145,8 @@
         <h1 class="title">线程池ThreadPoolExecutor源码学习和总结</h1>
         <h5 class="subtitle">
             
-                <time datetime="2020-07-23T07:30:16.000Z" itemprop="datePublished" class="page-time">
-  2020-07-23
+                <time datetime="2020-07-25T07:30:16.000Z" itemprop="datePublished" class="page-time">
+  2020-07-25
 </time>
 
 
@@ -178,7 +178,7 @@
     <div class="post-card">
         <h1 class="post-card-title">线程池ThreadPoolExecutor源码学习和总结</h1>
         <div class="post-meta">
-            <time class="post-time" title="2020-07-23 15:30:16" datetime="2020-07-23T07:30:16.000Z"  itemprop="datePublished">2020-07-23</time>
+            <time class="post-time" title="2020-07-25 15:30:16" datetime="2020-07-25T07:30:16.000Z"  itemprop="datePublished">2020-07-25</time>
 
             
 	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/java/">java</a></li></ul>
@@ -277,12 +277,12 @@
     <div class="content">
         
 <span class="post-time">
-    最終更新：<time datetime="2020-07-30T01:41:44.883Z" itemprop="dateUpdated">2020-07-30 09:41:44</time>
+    Last updated: <time datetime="2020-09-11T12:28:44.540Z" itemprop="dateUpdated">2020-09-11 20:28:44</time>
 </span><br>
 
 
         
-        感谢阅读，如有疑惑可以留下评论。文章地址：<a href="/2020/07/23/线程池ThreadPoolExecutor源码分析/" target="_blank" rel="external">http://qiaofengfangxh.top/2020/07/23/线程池ThreadPoolExecutor源码分析/</a>
+        感谢阅读，如有疑惑可以留下评论。文章地址：<a href="/2020/07/25/线程池ThreadPoolExecutor源码分析/" target="_blank" rel="external">http://qiaofengfangxh.top/2020/07/25/线程池ThreadPoolExecutor源码分析/</a>
         
     </div>
     
@@ -313,7 +313,7 @@
 <div class="page-share" id="pageShare">
     <ul class="reset share-icons">
       <li>
-        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2020/07/23/线程池ThreadPoolExecutor源码分析/&title=《线程池ThreadPoolExecutor源码学习和总结》 — qiaofeng-fangxianhao&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2020/07/25/线程池ThreadPoolExecutor源码分析/&title=《线程池ThreadPoolExecutor源码学习和总结》 — qiaofeng-fangxianhao&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
           <i class="icon icon-weibo"></i>
         </a>
       </li>
@@ -323,22 +323,22 @@
         </a>
       </li>
       <li>
-        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2020/07/23/线程池ThreadPoolExecutor源码分析/&title=《线程池ThreadPoolExecutor源码学习和总结》 — qiaofeng-fangxianhao&source=" data-title=" QQ">
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2020/07/25/线程池ThreadPoolExecutor源码分析/&title=《线程池ThreadPoolExecutor源码学习和总结》 — qiaofeng-fangxianhao&source=" data-title=" QQ">
           <i class="icon icon-qq"></i>
         </a>
       </li>
       <li>
-        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://qiaofengfangxh.top/2020/07/23/线程池ThreadPoolExecutor源码分析/" data-title=" Facebook">
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://qiaofengfangxh.top/2020/07/25/线程池ThreadPoolExecutor源码分析/" data-title=" Facebook">
           <i class="icon icon-facebook"></i>
         </a>
       </li>
       <li>
-        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《线程池ThreadPoolExecutor源码学习和总结》 — qiaofeng-fangxianhao&url=http://qiaofengfangxh.top/2020/07/23/线程池ThreadPoolExecutor源码分析/&via=http://qiaofengfangxh.top" data-title=" Twitter">
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《线程池ThreadPoolExecutor源码学习和总结》 — qiaofeng-fangxianhao&url=http://qiaofengfangxh.top/2020/07/25/线程池ThreadPoolExecutor源码分析/&via=http://qiaofengfangxh.top" data-title=" Twitter">
           <i class="icon icon-twitter"></i>
         </a>
       </li>
       <li>
-        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://qiaofengfangxh.top/2020/07/23/线程池ThreadPoolExecutor源码分析/" data-title=" Google+">
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://qiaofengfangxh.top/2020/07/25/线程池ThreadPoolExecutor源码分析/" data-title=" Google+">
           <i class="icon icon-google-plus"></i>
         </a>
       </li>
@@ -358,12 +358,19 @@
     </div>
 
     
-<nav class="post-nav flex-row flex-justify-between flex-row-reverse">
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2020/08/28/Java观察者模式/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">Java设计模式-观察者模式</h4>
+      </a>
+    </div>
   
 
   
     <div class="waves-block waves-effect next">
-      <a href="/2020/07/18/Redis-持久化数据/" id="post-next" class="post-nav-link">
+      <a href="/2020/07/19/Redis-持久化数据/" id="post-next" class="post-nav-link">
         <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
         <h4 class="title">Redis-持久化数据</h4>
       </a>
@@ -466,7 +473,7 @@
             
                 <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
             
-            <span>このブログの内容物は<a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ja">クリエイティブ・コモンズ 表示 - 非営利 - 継承 4.0 国際ライセンスの下に提供されています</a></span>
+            <span>This blog is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.</span>
         </p>
     </div>
     <div class="bottom">
@@ -488,7 +495,7 @@
 <div class="global-share" id="globalShare">
     <ul class="reset share-icons">
       <li>
-        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2020/07/23/线程池ThreadPoolExecutor源码分析/&title=《线程池ThreadPoolExecutor源码学习和总结》 — qiaofeng-fangxianhao&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2020/07/25/线程池ThreadPoolExecutor源码分析/&title=《线程池ThreadPoolExecutor源码学习和总结》 — qiaofeng-fangxianhao&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
           <i class="icon icon-weibo"></i>
         </a>
       </li>
@@ -498,22 +505,22 @@
         </a>
       </li>
       <li>
-        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2020/07/23/线程池ThreadPoolExecutor源码分析/&title=《线程池ThreadPoolExecutor源码学习和总结》 — qiaofeng-fangxianhao&source=" data-title=" QQ">
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2020/07/25/线程池ThreadPoolExecutor源码分析/&title=《线程池ThreadPoolExecutor源码学习和总结》 — qiaofeng-fangxianhao&source=" data-title=" QQ">
           <i class="icon icon-qq"></i>
         </a>
       </li>
       <li>
-        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://qiaofengfangxh.top/2020/07/23/线程池ThreadPoolExecutor源码分析/" data-title=" Facebook">
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://qiaofengfangxh.top/2020/07/25/线程池ThreadPoolExecutor源码分析/" data-title=" Facebook">
           <i class="icon icon-facebook"></i>
         </a>
       </li>
       <li>
-        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《线程池ThreadPoolExecutor源码学习和总结》 — qiaofeng-fangxianhao&url=http://qiaofengfangxh.top/2020/07/23/线程池ThreadPoolExecutor源码分析/&via=http://qiaofengfangxh.top" data-title=" Twitter">
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《线程池ThreadPoolExecutor源码学习和总结》 — qiaofeng-fangxianhao&url=http://qiaofengfangxh.top/2020/07/25/线程池ThreadPoolExecutor源码分析/&via=http://qiaofengfangxh.top" data-title=" Twitter">
           <i class="icon icon-twitter"></i>
         </a>
       </li>
       <li>
-        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://qiaofengfangxh.top/2020/07/23/线程池ThreadPoolExecutor源码分析/" data-title=" Google+">
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://qiaofengfangxh.top/2020/07/25/线程池ThreadPoolExecutor源码分析/" data-title=" Google+">
           <i class="icon icon-google-plus"></i>
         </a>
       </li>
@@ -524,7 +531,7 @@
 <div class="page-modal wx-share" id="wxShare">
     <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
-    <img src="//api.qrserver.com/v1/create-qr-code/?data=http://qiaofengfangxh.top/2020/07/23/线程池ThreadPoolExecutor源码分析/" alt="微信分享二维码">
+    <img src="//api.qrserver.com/v1/create-qr-code/?data=http://qiaofengfangxh.top/2020/07/25/线程池ThreadPoolExecutor源码分析/" alt="微信分享二维码">
 </div>
 
 
