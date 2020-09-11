@@ -14,7 +14,7 @@
     
     
     
-    <title>Java虚拟机中的垃圾回收算法与垃圾收集器 | qiaofeng-fangxianhao | 书山有路勤为径, 学海无涯苦作舟</title>
+    <title>Java虚拟机中的垃圾回收算法与垃圾收集器 | qiaofeng&#39;fangxh Blog | 书山有路勤为径, 学海无涯苦作舟</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     
     <meta name="theme-color" content="#3F51B5">
@@ -26,7 +26,7 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java虚拟机中的垃圾回收算法与垃圾收集器">
 <meta property="og:url" content="http://qiaofengfangxh.top/2020/07/05/Java虚拟机中的垃圾回收算法与垃圾收集器/index.html">
-<meta property="og:site_name" content="qiaofeng-fangxianhao">
+<meta property="og:site_name" content="qiaofeng&#39;fangxh Blog">
 <meta property="og:description" content="什么是垃圾回收在程序的运行过程中，我们所创建的对象都会申请内存资源，当这个对象没有用处的时候，我们就需要将它的内存资源释放，否则造成内存资源的浪费，所以我们需要对内存资源进行管理。 在C/C++语言中，没有自动的垃圾回收机制，通过手动申请内存资源及手动释放内存资源来达到内存资源的控制，如果没有手动释放资源，则申请的对象占用的内存资源会一直占用，最终可能会导致内存溢出。 为了使得我们可以更专注与代码">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="http://qiaofengfangxh.top/img/jvm-1.png">
@@ -46,7 +46,7 @@
 <meta name="twitter:description" content="什么是垃圾回收在程序的运行过程中，我们所创建的对象都会申请内存资源，当这个对象没有用处的时候，我们就需要将它的内存资源释放，否则造成内存资源的浪费，所以我们需要对内存资源进行管理。 在C/C++语言中，没有自动的垃圾回收机制，通过手动申请内存资源及手动释放内存资源来达到内存资源的控制，如果没有手动释放资源，则申请的对象占用的内存资源会一直占用，最终可能会导致内存溢出。 为了使得我们可以更专注与代码">
 <meta name="twitter:image" content="http://qiaofengfangxh.top/img/jvm-1.png">
     
-        <link rel="alternate" type="application/atom+xml" title="qiaofeng-fangxianhao" href="/atom.xml">
+        <link rel="alternate" type="application/atom+xml" title="qiaofeng&#39;fangxh Blog" href="/atom.xml">
     
     <link rel="shortcut icon" href="/favicon.ico">
     <link rel="stylesheet" href="/css/style.css?v=1.7.2">
@@ -71,7 +71,7 @@
           <img src="/img/avatar.jpg">
         </a>
         <hgroup class="introduce">
-          <h5 class="nickname">qiaofeng-fangxianhao</h5>
+          <h5 class="nickname">qiaofengfangxh</h5>
           <a href="mailto:fxh_new_think@sina.com" title="fxh_new_think@sina.com" class="mail">fxh_new_think@sina.com</a>
         </hgroup>
       </div>
@@ -421,8 +421,8 @@
     
     <footer>
         <a href="http://qiaofengfangxh.top">
-            <img src="/img/avatar.jpg" alt="qiaofeng-fangxianhao">
-            qiaofeng-fangxianhao
+            <img src="/img/avatar.jpg" alt="qiaofengfangxh">
+            qiaofengfangxh
         </a>
     </footer>
 </blockquote>
@@ -446,7 +446,7 @@
 <div class="page-share" id="pageShare">
     <ul class="reset share-icons">
       <li>
-        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2020/07/05/Java虚拟机中的垃圾回收算法与垃圾收集器/&title=《Java虚拟机中的垃圾回收算法与垃圾收集器》 — qiaofeng-fangxianhao&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2020/07/05/Java虚拟机中的垃圾回收算法与垃圾收集器/&title=《Java虚拟机中的垃圾回收算法与垃圾收集器》 — qiaofeng'fangxh Blog&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
           <i class="icon icon-weibo"></i>
         </a>
       </li>
@@ -456,7 +456,7 @@
         </a>
       </li>
       <li>
-        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2020/07/05/Java虚拟机中的垃圾回收算法与垃圾收集器/&title=《Java虚拟机中的垃圾回收算法与垃圾收集器》 — qiaofeng-fangxianhao&source=" data-title=" QQ">
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2020/07/05/Java虚拟机中的垃圾回收算法与垃圾收集器/&title=《Java虚拟机中的垃圾回收算法与垃圾收集器》 — qiaofeng'fangxh Blog&source=" data-title=" QQ">
           <i class="icon icon-qq"></i>
         </a>
       </li>
@@ -466,7 +466,7 @@
         </a>
       </li>
       <li>
-        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Java虚拟机中的垃圾回收算法与垃圾收集器》 — qiaofeng-fangxianhao&url=http://qiaofengfangxh.top/2020/07/05/Java虚拟机中的垃圾回收算法与垃圾收集器/&via=http://qiaofengfangxh.top" data-title=" Twitter">
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Java虚拟机中的垃圾回收算法与垃圾收集器》 — qiaofeng'fangxh Blog&url=http://qiaofengfangxh.top/2020/07/05/Java虚拟机中的垃圾回收算法与垃圾收集器/&via=http://qiaofengfangxh.top" data-title=" Twitter">
           <i class="icon icon-twitter"></i>
         </a>
       </li>
@@ -610,7 +610,7 @@
         </p>
     </div>
     <div class="bottom">
-        <p><span>qiaofeng-fangxianhao &copy; 2015 - 2020</span>
+        <p><span>qiaofengfangxh &copy; 2015 - 2020</span>
             <span>
                 
                 Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
@@ -628,7 +628,7 @@
 <div class="global-share" id="globalShare">
     <ul class="reset share-icons">
       <li>
-        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2020/07/05/Java虚拟机中的垃圾回收算法与垃圾收集器/&title=《Java虚拟机中的垃圾回收算法与垃圾收集器》 — qiaofeng-fangxianhao&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://qiaofengfangxh.top/2020/07/05/Java虚拟机中的垃圾回收算法与垃圾收集器/&title=《Java虚拟机中的垃圾回收算法与垃圾收集器》 — qiaofeng'fangxh Blog&pic=http://qiaofengfangxh.top/img/avatar.jpg" data-title="微博">
           <i class="icon icon-weibo"></i>
         </a>
       </li>
@@ -638,7 +638,7 @@
         </a>
       </li>
       <li>
-        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2020/07/05/Java虚拟机中的垃圾回收算法与垃圾收集器/&title=《Java虚拟机中的垃圾回收算法与垃圾收集器》 — qiaofeng-fangxianhao&source=" data-title=" QQ">
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://qiaofengfangxh.top/2020/07/05/Java虚拟机中的垃圾回收算法与垃圾收集器/&title=《Java虚拟机中的垃圾回收算法与垃圾收集器》 — qiaofeng'fangxh Blog&source=" data-title=" QQ">
           <i class="icon icon-qq"></i>
         </a>
       </li>
@@ -648,7 +648,7 @@
         </a>
       </li>
       <li>
-        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Java虚拟机中的垃圾回收算法与垃圾收集器》 — qiaofeng-fangxianhao&url=http://qiaofengfangxh.top/2020/07/05/Java虚拟机中的垃圾回收算法与垃圾收集器/&via=http://qiaofengfangxh.top" data-title=" Twitter">
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Java虚拟机中的垃圾回收算法与垃圾收集器》 — qiaofeng'fangxh Blog&url=http://qiaofengfangxh.top/2020/07/05/Java虚拟机中的垃圾回收算法与垃圾收集器/&via=http://qiaofengfangxh.top" data-title=" Twitter">
           <i class="icon icon-twitter"></i>
         </a>
       </li>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>qiaofeng-fangxianhao</title>
+  <title>qiaofeng&#39;fangxh Blog</title>
   
   <subtitle>书山有路勤为径, 学海无涯苦作舟</subtitle>
   <link href="/atom.xml" rel="self"/>
@@ -10,7 +10,7 @@
   <id>http://qiaofengfangxh.top/</id>
   
   <author>
-    <name>qiaofeng-fangxianhao</name>
+    <name>qiaofengfangxh</name>
     
   </author>
   
