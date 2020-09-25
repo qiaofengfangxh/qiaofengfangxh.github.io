@@ -21,18 +21,18 @@
     
     
     <meta name="keywords" content="redis">
-    <meta name="description" content="Redis被称为是内存数据库，那是因为它会将其所有数据存储在内存里，因此Redis具有强劲的速度性能，但是，也正因为数据存储在内存中，当Redis重启后，所有存储在内存的数据就会丢失。为了使得数据持久化，Redis提供了两种方式：RDB方式和AOF方式。 RDB方式RDB方式的持久化是通过快照（snapshotting）完成的，当符合一定条件时，Redis会自动将内存中所有的数据生成一份副本并存储">
+    <meta name="description" content="Redis被称为是内存数据库，那是因为它会将其所有数据存储在内存里，因此Redis具有强劲的速度性能，但是，也正因为数据存储在内存中，当Redis重启后，所有存储在内存的数据就会丢失。为了使得数据持久化，Redis提供了两种方式：RDB方式和AOF方式。 RDB方式RDB方式的持久化是通过快照（snapshotting）完成的，在指定时间间隔内，将内存中的数据集快照写入磁盘，也就是Snapshot">
 <meta name="keywords" content="redis">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Redis-持久化数据">
 <meta property="og:url" content="http://qiaofengfangxh.top/2020/07/19/Redis-持久化数据/index.html">
 <meta property="og:site_name" content="qiaofeng&#39;fangxh Blog">
-<meta property="og:description" content="Redis被称为是内存数据库，那是因为它会将其所有数据存储在内存里，因此Redis具有强劲的速度性能，但是，也正因为数据存储在内存中，当Redis重启后，所有存储在内存的数据就会丢失。为了使得数据持久化，Redis提供了两种方式：RDB方式和AOF方式。 RDB方式RDB方式的持久化是通过快照（snapshotting）完成的，当符合一定条件时，Redis会自动将内存中所有的数据生成一份副本并存储">
+<meta property="og:description" content="Redis被称为是内存数据库，那是因为它会将其所有数据存储在内存里，因此Redis具有强劲的速度性能，但是，也正因为数据存储在内存中，当Redis重启后，所有存储在内存的数据就会丢失。为了使得数据持久化，Redis提供了两种方式：RDB方式和AOF方式。 RDB方式RDB方式的持久化是通过快照（snapshotting）完成的，在指定时间间隔内，将内存中的数据集快照写入磁盘，也就是Snapshot">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2020-09-11T12:29:28.255Z">
+<meta property="og:updated_time" content="2020-09-25T06:59:13.829Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis-持久化数据">
-<meta name="twitter:description" content="Redis被称为是内存数据库，那是因为它会将其所有数据存储在内存里，因此Redis具有强劲的速度性能，但是，也正因为数据存储在内存中，当Redis重启后，所有存储在内存的数据就会丢失。为了使得数据持久化，Redis提供了两种方式：RDB方式和AOF方式。 RDB方式RDB方式的持久化是通过快照（snapshotting）完成的，当符合一定条件时，Redis会自动将内存中所有的数据生成一份副本并存储">
+<meta name="twitter:description" content="Redis被称为是内存数据库，那是因为它会将其所有数据存储在内存里，因此Redis具有强劲的速度性能，但是，也正因为数据存储在内存中，当Redis重启后，所有存储在内存的数据就会丢失。为了使得数据持久化，Redis提供了两种方式：RDB方式和AOF方式。 RDB方式RDB方式的持久化是通过快照（snapshotting）完成的，在指定时间间隔内，将内存中的数据集快照写入磁盘，也就是Snapshot">
     
         <link rel="alternate" type="application/atom+xml" title="qiaofeng&#39;fangxh Blog" href="/atom.xml">
     
@@ -167,7 +167,7 @@
     <aside class="post-widget">
         <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
             <h4>TOC</h4>
-            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#RDB方式"><span class="post-toc-number">1.</span> <span class="post-toc-text">RDB方式</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#根据配置规则进行自动快照"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">根据配置规则进行自动快照</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#用户执行SAVE或BGSAVE命令"><span class="post-toc-number">1.2.</span> <span class="post-toc-text">用户执行SAVE或BGSAVE命令</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#执行FLUSHALL命令"><span class="post-toc-number">1.3.</span> <span class="post-toc-text">执行FLUSHALL命令</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#执行复制（replication）"><span class="post-toc-number">1.4.</span> <span class="post-toc-text">执行复制（replication）</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#快照原理"><span class="post-toc-number">1.4.1.</span> <span class="post-toc-text">快照原理</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#AOF方式"><span class="post-toc-number">2.</span> <span class="post-toc-text">AOF方式</span></a></li></ol>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#RDB方式"><span class="post-toc-number">1.</span> <span class="post-toc-text">RDB方式</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#根据配置规则进行自动快照"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">根据配置规则进行自动快照</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#用户执行SAVE或BGSAVE命令"><span class="post-toc-number">1.2.</span> <span class="post-toc-text">用户执行SAVE或BGSAVE命令</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#执行FLUSHALL命令"><span class="post-toc-number">1.3.</span> <span class="post-toc-text">执行FLUSHALL命令</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#执行复制（replication）"><span class="post-toc-number">1.4.</span> <span class="post-toc-text">执行复制（replication）</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#快照原理"><span class="post-toc-number">1.4.1.</span> <span class="post-toc-text">快照原理</span></a></li></ol></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Snapshot"><span class="post-toc-number">1.5.</span> <span class="post-toc-text">Snapshot</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#RDB的优点"><span class="post-toc-number">1.6.</span> <span class="post-toc-text">RDB的优点</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#RDB缺点"><span class="post-toc-number">1.7.</span> <span class="post-toc-text">RDB缺点</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#AOF方式"><span class="post-toc-number">2.</span> <span class="post-toc-text">AOF方式</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#什么是AOF"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">什么是AOF</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#AOF的持久化"><span class="post-toc-number">2.2.</span> <span class="post-toc-text">AOF的持久化</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#数据恢复"><span class="post-toc-number">2.3.</span> <span class="post-toc-text">数据恢复</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#AOF的重写机制"><span class="post-toc-number">2.4.</span> <span class="post-toc-text">AOF的重写机制</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#重写原理"><span class="post-toc-number">2.4.1.</span> <span class="post-toc-text">重写原理</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#重写触发条件"><span class="post-toc-number">2.4.2.</span> <span class="post-toc-text">重写触发条件</span></a></li></ol></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#AOF优点"><span class="post-toc-number">2.5.</span> <span class="post-toc-text">AOF优点</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#AOF缺点"><span class="post-toc-number">2.6.</span> <span class="post-toc-text">AOF缺点</span></a></li></ol></li></ol>
         </nav>
     </aside>
 
@@ -194,7 +194,7 @@
         </div>
         <div class="post-content" id="post-content" itemprop="postContent">
             <p>Redis被称为是内存数据库，那是因为它会将其所有数据存储在内存里，因此Redis具有强劲的速度性能，但是，也正因为数据存储在内存中，当Redis重启后，所有存储在内存的数据就会丢失。为了使得数据持久化，Redis提供了两种方式：RDB方式和AOF方式。</p>
-<h2 id="RDB方式"><a href="#RDB方式" class="headerlink" title="RDB方式"></a>RDB方式</h2><p>RDB方式的持久化是通过快照（snapshotting）完成的，当符合一定条件时，Redis会自动将内存中所有的数据生成一份副本并存储在硬盘中，这个过程被称为“快照”。“快照”，就类似于拍照，摁下快门那一刻，所定格的照片，就称为“快照”。Redis有4种情况会对数据进行快照：</p>
+<h2 id="RDB方式"><a href="#RDB方式" class="headerlink" title="RDB方式"></a>RDB方式</h2><p>RDB方式的持久化是通过快照（snapshotting）完成的，在指定时间间隔内，将内存中的数据集快照写入磁盘，也就是Snapshot快照，它恢复时是将快照文件直接读到内存中，来达到恢复数据的，Redis有4种情况会对数据进行快照：</p>
 <ul>
 <li><code>根据配置规则进行自动快照</code></li>
 <li><code>用户执行SAVE或BGSAVE命令</code></li>
@@ -216,11 +216,26 @@
 <p>在fork函数执行的时候，操作系统会使用写时复制（copy-on-write）策略，即fork函数发生的那一刻，父子进程共享同一内存数据，当父进程要更改其中某片数据时，操作系统会将该片数据复制一份，以保证子进程不受影响，所以新的RDB格式文件保存的是执行fork那一刻的内存数据。因为使用了写时复制策略，使得在fork的时刻用了不到2倍的内存，就可以保存貌似两份的内存副本一样。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">值得注意的是: 当进行快照的过程中，如果写入操作较多，造成fork前后数据差异较大，是会使得内存使用量显著增加，</span><br><span class="line">因为内存中不仅保存当前进程的数据，还保存了fork时刻的内存数据. Redis进行快照的过程中不会修改RDB文件,  </span><br><span class="line">只有快照结束后才会将旧的文件替换成新的，也就是说任何时候RDB文件都是完整的，这对于数据库备份有一个很好的作用</span><br></pre></td></tr></table></figure>
 
-
-<h2 id="AOF方式"><a href="#AOF方式" class="headerlink" title="AOF方式"></a>AOF方式</h2><p>通过RDB方式实现持久化，一旦Redis异常退出，，就会丢失最后一次快照之后更改的所有数据。为了降低因进程中止导致的数据丢失风险，可以使用AOF方式实现数据持久化。</p>
-<p>默认情况下，Redis是没有开启AOF方式的持久化，可以通过appendonly参数启动：appendonly yes</p>
-<p>开启AOF持久化后，每执行一条会更改Redis中数据的命令，Redis就会将该命令写入硬盘中的AOF格式的文件，即.aof格式文件存储的是一些redis指令。这个时候就要注意，当频繁操作Redis中的数据时，AOF格式文件所占内存就会越来越大，而且会有很多没用的指令，如连续执行set foo 1，set foo 2，set foo 3，那么前两条指令是没有意义的，Redis很强大，它会自动将没有意义的指令删除，即每当达到一定条件时，Redis就会自动重写AOF文件，而这个条件可以在配置文件中设置。重写的过程只和内存数据有关，和之前的AOF文件无关，这点跟RDB相似。</p>
-<p>在同步硬盘数据数据时，由于操作系统的缓存机制，数据并没有真正地写入到硬盘中，而是进入到系统的硬盘缓存。在默认的情况下，系统每个30秒会执行一次同步操作，在这30秒的过程中，如果系统异常退出，那么会导致硬盘内存中的数据丢失。Redis允许同时开启RDB和AOF方式，既保证了数据安全，又使得备份操作十分容易。AOF可以有效降低数据丢失的可能性，RDB可以使得数据备份容易达到。</p>
+<h3 id="Snapshot"><a href="#Snapshot" class="headerlink" title="Snapshot"></a>Snapshot</h3><p>在默认情况下， Redis 将数据库快照保存在名字为 dump.rdb 的二进制文件中。通过触发快照的形式，来做到将指定时间间隔内的数据持久化到dump.rdb。<br>例如，可以2分钟内持久化一次，将对数据库的写操作，备份到磁盘上的dump.rdb。如何触发持久化呢？可以通过查看或者设置redis.conf配置文件来指定触发规则</p>
+<h3 id="RDB的优点"><a href="#RDB的优点" class="headerlink" title="RDB的优点"></a>RDB的优点</h3><p>如果要进行大规模数据的恢复，RDB方式要比AOF方式恢复速度要快。<br>RDB可以最大化Redis性能，父进程做的就是fork子进程，然后继续接受客户端请求，让子进程负责持久化操作，父进程无需进行IO操作。</p>
+<p>RDB是一个非常紧凑(compact)的文件,它保存了某个时间点的数据集，非常适合用作备份，同时也非常适合用作灾难性恢复，它只有一个文件，内容紧凑，通过备份原文件到本机外的其他主机上，一旦本机发生宕机，就能将备份文件复制到redis安装目录下，通过启用服务就能完成数据的恢复</p>
+<h3 id="RDB缺点"><a href="#RDB缺点" class="headerlink" title="RDB缺点"></a>RDB缺点</h3><p>RDB这种持久化方式不太适应对数据完整性要求严格的情况，因为，尽管我们可以用过修改快照实现持久化的频率，但是要持久化的数据是一段时间内的整个数据集的状态，如果在还没有触发快照时，本机就宕机了，那么对数据库所做的写操作就随之而消失了并没有持久化本地dump.rdb文件中。</p>
+<p>每次进行RDB时，父进程都会fork一个子进程，由子进程来进行实际的持久化操作，如果数据集庞大，那么fork出子进程的这个过程将是非常耗时的，就会出现服务器暂停客户端请求，将内存中的数据复制一份给子进程，让子进程进行持久化操作</p>
+<h2 id="AOF方式"><a href="#AOF方式" class="headerlink" title="AOF方式"></a>AOF方式</h2><h3 id="什么是AOF"><a href="#什么是AOF" class="headerlink" title="什么是AOF"></a>什么是AOF</h3><p>以日志的形式记录Redis每一个写操作，将redis执行过的所有写指令记录下来（读操作指令不记录），只许追加文件不可以改写文件，redis启动之后会读取appendonly.aof文件来实现重新恢复数据，<br>完成恢复数据的工作, redis默认不开启aof，如果要开启就需要将配置文件redis.conf中的appendonly no 改为 yes</p>
+<h3 id="AOF的持久化"><a href="#AOF的持久化" class="headerlink" title="AOF的持久化"></a>AOF的持久化</h3><p>从redis配置文件中我们发现redis的AOF持久化有三种，分别如下：</p>
+<ol>
+<li>appendfsync always: 每次修改同步，每一次发生数据变更都会持久化到磁盘上，性能较差，但数据完整性较好</li>
+<li>appendfsync everysec（reids默认的aof持久化）: 每秒同步，每秒内记录操作，异步操作，性能较好，如果一秒内宕机，有数据丢失，这是默认的aof持久化方式</li>
+<li>appendfsync no: 不同步到磁盘去</li>
+</ol>
+<h3 id="数据恢复"><a href="#数据恢复" class="headerlink" title="数据恢复"></a>数据恢复</h3><p>重启redis的时候，如果dump.rdb和appendfsync.aof同时都存在时，redis会自动读取appendfsync.aof文件，通过该文件中对数据库的日志操作，<br>来实现数据的恢复。当然如果该文件被破坏，我们可以通过redis-check-aof工具来修复，如redis-check-aof –fix能修复破损的appendfsync.aof文件，<br>当然如果dump.rdb文件有破损，我们也可以用redis-check-rdb工具来修复，如果appendfsync.aof文件破损了，是无法启动客户端的，也就是无法完成数据的恢复</p>
+<h3 id="AOF的重写机制"><a href="#AOF的重写机制" class="headerlink" title="AOF的重写机制"></a>AOF的重写机制</h3><p>前面我们说到aof是以日志的形式记录redis的每一个写的操作，那么这就会有一个问题：如果我们频繁的写操作，那么这个aof的日志文件就会越来越大，<br>若不加以控制，体积过大的AOF文件很可能对redis服务器，甚至整个宿主计算机造成影响，并且如果AOF文件越大，那么使用aof文件进行数据恢复所花费的时间就会越久。<br>所以为了避免这种情况，redis新增了重写机制，当AOF文件的大小超过所指定的阈值时，Redis会自动启用AOF文件的内容压缩，只保留可以恢复数据的最小指令集，可以使用命令bgrewiteaof</p>
+<h4 id="重写原理"><a href="#重写原理" class="headerlink" title="重写原理"></a>重写原理</h4><p>AOF文件持续增长过大时，会fork出一条新进程来将文件重写（也是临时文件最后再rename）,遍历新进程的内存中的数据，每条记录都会有一条set语句，<br>重写aof文件的操作，并没有读取旧的aof文件，而是将整个内存中的数据库内容用命令的方式重写了一个新的aof文件，有点类似于快照</p>
+<h4 id="重写触发条件"><a href="#重写触发条件" class="headerlink" title="重写触发条件"></a>重写触发条件</h4><p>Redis会记录上一次重写时的AOF大小，默认配置是当AOF文件大小是上一次的一倍并且大于64m时，会触发重写机制，<br>redis配置文件的参数配置：<br>                        auto-aof-rewrite-percentage 100<br>                        auto-aof-rewrite-min-size 64mb</p>
+<h3 id="AOF优点"><a href="#AOF优点" class="headerlink" title="AOF优点"></a>AOF优点</h3><p>AOF文件是一个只进行追加操作的日志文件，对文件写入不需要进行seek，即使在追加的过程中，写入了不完整的命令（例如：磁盘已满），可以使用redis-check-aof工具可以修复这种问题</p>
+<p>Redis可以在AOF文件变得过大时，会自动地在后台对AOF进行重写：重写后的新的AOF文件包含了恢复当前数据集所需的最小命令集合。整个重写操作是绝对安全的，因为Redis在创建AOF文件的过程中，会继续将命令追加到现有的AOF文件中，即使在重写的过程中发生宕机，现有的AOF文件也不会丢失。一旦新AOF文件创建完毕，Redis就会从旧的AOF文件切换到新的AOF文件，并对新的AOF文件进行追加操作。</p>
+<p>AOF文件有序地保存了对数据库执行的所有写入操作。这些写入操作一Redis协议的格式保存，易于对文件进行分析；例如，如果不小心执行了FLUSHALL命令，但只要AOF文件未被重写，通过停止服务器，移除AOF文件末尾的FLUSHALL命令，重启服务器就能达到FLUSHALL执行之前的状态</p>
+<h3 id="AOF缺点"><a href="#AOF缺点" class="headerlink" title="AOF缺点"></a>AOF缺点</h3><p>对于相同的数据集来说，AOF文件要比RDB文件大。而且AOF的速度要慢与RDB。一般情况下，reids默认的aof持久化的每秒同步策略（appendfsync everysec）效果较好。不使用同步策略的情况下，AOF与RDB速度一样快。<br>并且 RDB 恢复数据集的速度也要比 AOF 恢复的速度要快， 而且使用 RDB 还可以避免之前提到的 AOF 程序的 bug。如果可以承受分钟内的数据丢失，可以只使用RDB持久化。</p>
 
         </div>
 
